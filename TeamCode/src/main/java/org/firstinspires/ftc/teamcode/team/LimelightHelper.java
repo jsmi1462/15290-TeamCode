@@ -20,7 +20,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
  * SETUP (mentor, once): in the Limelight web UI, load the AprilTag pipeline for the current
  * game's field map, and set the camera position on the robot. In the Robot Configuration, name
  * the device "limelight".
- *
+ *Hi Mr. Smith
  * Call relocalize() while the robot is STOPPED. The camera image is a few tens of milliseconds
  * old, so a moving robot gets a slightly wrong correction.
  */
