@@ -21,6 +21,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
  * game's field map, and set the camera position on the robot. In the Robot Configuration, name
  * the device "limelight".
  *Hi Mr. Smith
+ * If no device named "limelight" is in the Robot Configuration, this class does nothing:
+ * relocalize() returns false and the OpMode keeps running. Check isConnected() in telemetry.
+ *
  * Call relocalize() while the robot is STOPPED. The camera image is a few tens of milliseconds
  * old, so a moving robot gets a slightly wrong correction.
  */
@@ -31,6 +34,7 @@ public class LimelightHelper {
     /** Half the field width in inches. Moves the origin from field center to field corner. */
     private static final double FIELD_HALF_IN = 72;
 
+    /** Null when no "limelight" device is configured. Every method checks this. */
     private final Limelight3A limelight;
 
     public LimelightHelper(HardwareMap hardwareMap) {
@@ -38,9 +42,20 @@ public class LimelightHelper {
     }
 
     public LimelightHelper(HardwareMap hardwareMap, int pipeline) {
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(pipeline);
-        limelight.start();
+        Limelight3A found = null;
+        try {
+            found = hardwareMap.get(Limelight3A.class, "limelight");
+            found.pipelineSwitch(pipeline);
+            found.start();
+        } catch (IllegalArgumentException e) {
+            found = null; // not in the config: run without the camera instead of crashing
+        }
+        limelight = found;
+    }
+
+    /** True if a "limelight" device was found in the Robot Configuration. */
+    public boolean isConnected() {
+        return limelight != null;
     }
 
     /**
@@ -50,6 +65,9 @@ public class LimelightHelper {
      * @param headingRadians the robot's current heading from odometry
      */
     public Pose poseOrNull(double headingRadians) {
+        if (limelight == null) {
+            return null;
+        }
         limelight.updateRobotOrientation(Math.toDegrees(headingRadians));
         LLResult result = limelight.getLatestResult();
         if (result == null || !result.isValid() || result.getStaleness() > MAX_STALENESS_MS) {
@@ -80,6 +98,8 @@ public class LimelightHelper {
     }
 
     public void stop() {
-        limelight.stop();
+        if (limelight != null) {
+            limelight.stop();
+        }
     }
 }
