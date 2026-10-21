@@ -17,6 +17,8 @@ public class PinpointTuner extends Procedure {
         FOUR_BAR,
         CUSTOM
     }
+
+
     public PinpointTuner() {
         super("Pinpoint Tuner", "A procedure for tuning the Pinpoint localizer.");
     }
@@ -86,7 +88,7 @@ class PinpointCustomPodScalar extends TuningOpMode<Double> {
     @Override
     protected Double runTuningOpMode() throws InterruptedException {
         PinpointConfig config = new PinpointConfig(c -> {
-            c.name.set(name);
+            c.name.set("pinpoint");
             c.ticksPerUnit.set(OptionalDouble.of(1.0));
             c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
             c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
