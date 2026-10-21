@@ -5,8 +5,11 @@ import com.pedropathing.revhub.localizers.PinpointConfig;
 import com.pedropathing.revhub.localizers.PinpointLocalizer;
 import com.pedropathing.tuning.autotune.Inputs;
 import com.pedropathing.tuning.autotune.Procedure;
+import com.pedropathing.tuning.autotune.Tuner;
 import com.pedropathing.tuning.autotune.TuningOpMode;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.*;
@@ -169,6 +172,7 @@ class PinpointStrafeDirection extends TuningOpMode<Boolean> {
     }
 
     @Override
+    @Tuner
     protected Boolean runTuningOpMode() throws InterruptedException {
         PinpointConfig config = new PinpointConfig(c -> {
             c.name.set(name);
