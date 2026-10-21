@@ -17,6 +17,8 @@ public class PinpointTuner extends Procedure {
         FOUR_BAR,
         CUSTOM
     }
+
+
     public PinpointTuner() {
         super("Pinpoint Tuner", "A procedure for tuning the Pinpoint localizer.");
     }
