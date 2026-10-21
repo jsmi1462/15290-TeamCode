@@ -166,8 +166,11 @@ public class DriveMode extends LinearOpMode {
             while (gamepad2.rightBumperWasPressed()) {
                 shooter.setPower(1);
             }
-
-
+            if (gamepad2.a) {
+                intake.setPower(1.0);  // Full speed forward
+            }  else {
+                intake.setPower(0.0);  // Stop motor
+            }
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
