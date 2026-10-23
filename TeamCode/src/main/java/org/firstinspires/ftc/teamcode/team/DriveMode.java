@@ -33,6 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
@@ -72,20 +73,24 @@ public class DriveMode extends LinearOpMode {
     private DcMotor backLeftDrive = null;
     private DcMotor frontRightDrive = null;
     private DcMotor backRightDrive = null;
-    private DcMotor shooter = null;
+    private DcMotor shooter1 = null;
+    private DcMotor shooter2 = null;
     private DcMotor intake = null;
+    private DcMotor windmill = null;
 
     @Override
     public void runOpMode() {
 
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
-        frontLeftDrive = hardwareMap.get(DcMotor.class, "frontLeft");
-        backLeftDrive = hardwareMap.get(DcMotor.class, "backLeft");
-        frontRightDrive = hardwareMap.get(DcMotor.class, "frontRight");
-        backRightDrive = hardwareMap.get(DcMotor.class, "backRight");
-        shooter = hardwareMap.get(DcMotor.class, "shooter");
+        frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
+        backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
+        frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
+        backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
+        shooter1 = hardwareMap.get(DcMotor.class, "shooter1");
+        shooter2 = hardwareMap.get(DcMotor.class, "shooter2");
         intake = hardwareMap.get(DcMotor.class, "intake");
+        windmill= hardwareMap.get(DcMotor.class, "windmill");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -101,6 +106,10 @@ public class DriveMode extends LinearOpMode {
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        shooter1.setDirection(DcMotor.Direction.FORWARD);
+        shooter2.setDirection(DcMotor.Direction.REVERSE);
+        intake.setDirection(DcMotor.Direction.FORWARD);
+        windmill.setDirection(DcMotor.Direction.FORWARD);
 
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
@@ -163,13 +172,25 @@ public class DriveMode extends LinearOpMode {
             backRightDrive.setPower(backRightPower);
 
             //shooter controled by right bunper, intake by a
-            while (gamepad2.rightBumperWasPressed()) {
-                shooter.setPower(1);
+            if (gamepad2.right_bumper) {
+                shooter1.setPower(1.0);
+                shooter2.setPower(1.0);
+            } else {
+                shooter1.setPower(0.0);
+                shooter2.setPower(0.0);// Stop motor
             }
+
             if (gamepad2.a) {
                 intake.setPower(1.0);  // Full speed forward
             }  else {
                 intake.setPower(0.0);  // Stop motor
+            }
+
+            //windmill controlled by left bumper
+            if (gamepad2.left_bumper) {
+                windmill.setPower(0.5); // Spin at half speed (adjust as needed)
+            } else {
+                windmill.setPower(0.0); // Stop spinning
             }
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
