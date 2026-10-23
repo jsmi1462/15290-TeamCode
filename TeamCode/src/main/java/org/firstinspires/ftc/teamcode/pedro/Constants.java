@@ -99,4 +99,5 @@ public class Constants {
         Algorithm algorithm = new Foresight(foresightConfig);
         return new Follower(localizer, drivetrain, algorithm);
     }
+    
 }
