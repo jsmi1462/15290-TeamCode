@@ -171,7 +171,7 @@ public class DriveMode extends LinearOpMode {
             backLeftDrive.setPower(backLeftPower);
             backRightDrive.setPower(backRightPower);
 
-            //shooter controled by right bunper, intake by a
+            //shooter controlled by right bumper, intake by a
             if (gamepad2.right_bumper) {
                 shooter1.setPower(0.1);
                 shooter2.setPower(0.1);
