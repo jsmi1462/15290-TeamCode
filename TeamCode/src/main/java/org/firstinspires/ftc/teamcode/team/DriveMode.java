@@ -90,7 +90,7 @@ public class DriveMode extends LinearOpMode {
         shooter1 = hardwareMap.get(DcMotor.class, "shooter1");
         shooter2 = hardwareMap.get(DcMotor.class, "shooter2");
         intake = hardwareMap.get(DcMotor.class, "intake");
-        windmill= hardwareMap.get(DcMotor.class, "windmill");
+        windmill = hardwareMap.get(DcMotor.class, "windmill");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -173,42 +173,53 @@ public class DriveMode extends LinearOpMode {
             backLeftDrive.setPower(backLeftPower);
             backRightDrive.setPower(backRightPower);
 
+
             if (gamepad2.y) {
                 powerShooter = powerShooter + 0.05;
                 if (powerShooter > 1.0) {
                     powerShooter = 0.2;
                 }
-            }
 
-            if (gamepad2.x) {
-                powerShooter = powerShooter - 0.05;
-                if (powerShooter < 0.2) {
-                    powerShooter = 1.0;
+                //shooter controlled by right bumper, intake by a
+                if (gamepad2.right_bumper) {
+                    shooter1.setPower(0.1);
+                    shooter2.setPower(0.1);
+                } else {
+                    shooter1.setPower(0.0);
+                    shooter2.setPower(0.0);// Stop motor
+
                 }
-            }
 
-            //shooter controled by right bunper, intake by a
-            shooter1.setPower(powerShooter);
-            shooter2.setPower(powerShooter);
+                if (gamepad2.x) {
+                    powerShooter = powerShooter - 0.05;
+                    if (powerShooter < 0.2) {
+                        powerShooter = 1.0;
+                    }
+                }
 
-            if (gamepad2.a) {
-                intake.setPower(1.0);  // Full speed forward
-            }  else {
-                intake.setPower(0.0);  // Stop motor
-            }
+                //shooter controled by right bunper, intake by a
+                shooter1.setPower(powerShooter);
+                shooter2.setPower(powerShooter);
 
-            //windmill controlled by left bumper
-            if (gamepad2.left_bumper) {
-                windmill.setPower(1.0); // Spin at half speed (adjust as needed)
-            } else {
-                windmill.setPower(0.0); // Stop spinning
+                if (gamepad2.a) {
+                    intake.setPower(1.0);  // Full speed forward
+                } else {
+                    intake.setPower(0.0);  // Stop motor
+                }
+
+                //windmill controlled by left bumper
+                if (gamepad2.left_bumper) {
+                    windmill.setPower(1.0); // Spin at half speed (adjust as needed)
+                } else {
+                    windmill.setPower(0.0); // Stop spinning
+                }
+                // Show the elapsed game time and wheel power.
+                telemetry.addData("Status", "Run Time: " + runtime.toString());
+                telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
+                telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
+                telemetry.addData("Current shotpower", "%4.2f", powerShooter);
+                telemetry.update();
             }
-            // Show the elapsed game time and wheel power.
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
-            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
-            telemetry.addData("Current shotpower","%4.2f", powerShooter);
-            telemetry.update();
         }
     }
 }
