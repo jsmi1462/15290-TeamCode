@@ -14,8 +14,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
-@Autonomous(name = "Autonomous Red Up", group = "Sensor")
-public class AutonomousRed extends LinearOpMode {
+@Autonomous(name = "Autonomous Up", group = "Sensor")
+public class AutonomousUp extends LinearOpMode {
     private static final double DRIVE_POWER = 0.3;
     private static final double TARGET_X_IN = 82.0;   // forward distance
     private static final double TARGET_Y_IN = 42.0;   // strafe distance (+Y = left on Pinpoint)
@@ -61,16 +61,16 @@ public class AutonomousRed extends LinearOpMode {
         telemetry.update();
         waitForStart();
         runtime.reset();
-        AutonomousRed.State state = AutonomousRed.State.FIRST_FORWARD;
+        AutonomousUp.State state = AutonomousUp.State.FIRST_FORWARD;
 
-        while (opModeIsActive() && state != AutonomousRed.State.DONE) {
+        while (opModeIsActive() && state != AutonomousUp.State.DONE) {
             pinpoint.update(); // required every loop or position never changes
             Pose2D pose = pinpoint.getPosition();
             double x = pose.getX(DistanceUnit.INCH);
             double y = pose.getY(DistanceUnit.INCH);
 
             if (runtime.seconds() > TIMEOUT_S) {
-                state = AutonomousRed.State.DONE;
+                state = AutonomousUp.State.DONE;
             }
 
             switch (state) {
@@ -79,7 +79,7 @@ public class AutonomousRed extends LinearOpMode {
                         drive(DRIVE_POWER, 0);
                     } else {
                         stopDrive();
-                        state = AutonomousRed.State.FIRST_STRAFE;
+                        state = AutonomousUp.State.FIRST_STRAFE;
                     }
                     break;
 
@@ -96,7 +96,7 @@ public class AutonomousRed extends LinearOpMode {
                         drive(DRIVE_POWER, 0);
                     } else {
                         stopDrive();
-                        state = AutonomousRed.State.SECOND_STRAFE;
+                        state = AutonomousUp.State.SECOND_STRAFE;
                     }
                     break;
 
