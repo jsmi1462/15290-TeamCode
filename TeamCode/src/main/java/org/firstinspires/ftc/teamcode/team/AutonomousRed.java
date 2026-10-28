@@ -81,11 +81,11 @@ public class AutonomousRed extends LinearOpMode {
     private DcMotor backLeftDrive = null;
     private DcMotor frontRightDrive = null;
     private DcMotor backRightDrive = null;
-    private DcMotor shooter1 = null;
+    /*private DcMotor shooter1 = null;
     private DcMotor shooter2 = null;
     private DcMotor intake = null;
     private DcMotor windmill = null;
-
+    */
     @Override
     public void runOpMode() throws InterruptedException
     {
@@ -95,10 +95,11 @@ public class AutonomousRed extends LinearOpMode {
         frontRightDrive = hardwareMap.get(DcMotor.class, "frontRight");
         backLeftDrive = hardwareMap.get(DcMotor.class, "backLeft");
         backRightDrive = hardwareMap.get(DcMotor.class, "backRight");
-        shooter1 = hardwareMap.get(DcMotor.class, "shooter1");
+        /*shooter1 = hardwareMap.get(DcMotor.class, "shooter1");
         shooter2 = hardwareMap.get(DcMotor.class, "shooter2");
         intake = hardwareMap.get(DcMotor.class, "intake");
         windmill = hardwareMap.get(DcMotor.class, "windmill");
+        */
         telemetry.setMsTransmissionInterval(11);
 
         limelight.pipelineSwitch(0);
@@ -108,7 +109,7 @@ public class AutonomousRed extends LinearOpMode {
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
-        shooter1.setDirection(DcMotor.Direction.FORWARD);
+        /*shooter1.setDirection(DcMotor.Direction.FORWARD);
         shooter2.setDirection(DcMotor.Direction.REVERSE);
         intake.setDirection(DcMotor.Direction.FORWARD);
         windmill.setDirection(DcMotor.Direction.FORWARD);
