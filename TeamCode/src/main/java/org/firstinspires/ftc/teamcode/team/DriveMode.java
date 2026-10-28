@@ -191,14 +191,17 @@ public class DriveMode extends LinearOpMode {
             if (gamepad2.y && !lastY && powerShooter < 1.0) {
                 powerShooter += 0.01;
             }
-            lastY = gamepad2.y;
 
-            if (gamepad2.x && !lastX && powerShooter > 0.2) {
-                powerShooter -= 0.01;
+            lastY = true;
+
+            if (gamepad2.y) {
+                powerShooter += 0.05;
+                if (powerShooter > 1.0) {
+                    powerShooter = 0.2;
+                }
             }
-            lastX = gamepad2.x;
 
-            //shooter controlled by right bumper, intake by a
+                //shooter controlled by right bumper, intake by a
             if (gamepad2.right_bumper) {
                 shooter1.setPower(0.1);
                 shooter2.setPower(0.1);
@@ -206,6 +209,19 @@ public class DriveMode extends LinearOpMode {
                 shooter1.setPower(0.0);
                 shooter2.setPower(0.0);// Stop motor
 
+            }
+
+            if (gamepad2.x && !lastX && powerShooter < 1.0) {
+                powerShooter += 0.01;
+            }
+
+            lastX = true;
+
+            if (gamepad2.x) {
+                powerShooter = powerShooter - 0.05;
+                if (powerShooter < 0.2) {
+                    powerShooter = 1.0;
+                }
             }
 
             //shooter controled by right bunper, intake by a
@@ -236,4 +252,5 @@ public class DriveMode extends LinearOpMode {
         }
     }
 }
+
 
