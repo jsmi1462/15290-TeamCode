@@ -175,7 +175,7 @@ public class DriveMode extends LinearOpMode {
 
 
             if (gamepad2.y) {
-                powerShooter = powerShooter + 0.05;
+                powerShooter += 0.05;
                 if (powerShooter > 1.0) {
                     powerShooter = 0.2;
                 }
