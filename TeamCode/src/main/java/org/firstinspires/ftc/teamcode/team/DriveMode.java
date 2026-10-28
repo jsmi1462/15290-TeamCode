@@ -29,12 +29,18 @@
 
 package org.firstinspires.ftc.teamcode.team;
 
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 /*
  * This file contains an example of a Linear "OpMode".
@@ -77,6 +83,7 @@ public class DriveMode extends LinearOpMode {
     private DcMotor shooter2 = null;
     private DcMotor intake = null;
     private DcMotor windmill = null;
+    private GoBildaPinpointDriver pinpoint = null;
 
     @Override
     public void runOpMode() {
@@ -91,6 +98,7 @@ public class DriveMode extends LinearOpMode {
         shooter2 = hardwareMap.get(DcMotor.class, "shooter2");
         intake = hardwareMap.get(DcMotor.class, "intake");
         windmill = hardwareMap.get(DcMotor.class, "windmill");
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -122,6 +130,8 @@ public class DriveMode extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            pinpoint.update();
+
             double max;
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
@@ -136,6 +146,8 @@ public class DriveMode extends LinearOpMode {
             double frontRightPower = axial - lateral - yaw;
             double backLeftPower = axial - lateral + yaw;
             double backRightPower = axial + lateral - yaw;
+
+            Pose2D currentPosition = pinpoint.getPosition();
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
@@ -173,53 +185,55 @@ public class DriveMode extends LinearOpMode {
             backLeftDrive.setPower(backLeftPower);
             backRightDrive.setPower(backRightPower);
 
+            boolean lastY = false;
+            boolean lastX = false;
 
-            if (gamepad2.y) {
-                powerShooter = powerShooter + 0.05;
-                if (powerShooter > 1.0) {
-                    powerShooter = 0.2;
-                }
-
-                //shooter controlled by right bumper, intake by a
-                if (gamepad2.right_bumper) {
-                    shooter1.setPower(0.1);
-                    shooter2.setPower(0.1);
-                } else {
-                    shooter1.setPower(0.0);
-                    shooter2.setPower(0.0);// Stop motor
-
-                }
-
-                if (gamepad2.x) {
-                    powerShooter = powerShooter - 0.05;
-                    if (powerShooter < 0.2) {
-                        powerShooter = 1.0;
-                    }
-                }
-
-                //shooter controled by right bunper, intake by a
-                shooter1.setPower(powerShooter);
-                shooter2.setPower(powerShooter);
-
-                if (gamepad2.a) {
-                    intake.setPower(1.0);  // Full speed forward
-                } else {
-                    intake.setPower(0.0);  // Stop motor
-                }
-
-                //windmill controlled by left bumper
-                if (gamepad2.left_bumper) {
-                    windmill.setPower(1.0); // Spin at half speed (adjust as needed)
-                } else {
-                    windmill.setPower(0.0); // Stop spinning
-                }
-                // Show the elapsed game time and wheel power.
-                telemetry.addData("Status", "Run Time: " + runtime.toString());
-                telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
-                telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
-                telemetry.addData("Current shotpower", "%4.2f", powerShooter);
-                telemetry.update();
+            if (gamepad2.y && !lastY && powerShooter < 1.0) {
+                powerShooter += 0.01;
             }
+            lastY = gamepad2.y;
+
+            if (gamepad2.x && !lastX && powerShooter > 0.2) {
+                powerShooter -= 0.01;
+            }
+            lastX = gamepad2.x;
+
+            //shooter controlled by right bumper, intake by a
+            if (gamepad2.right_bumper) {
+                shooter1.setPower(0.1);
+                shooter2.setPower(0.1);
+            } else {
+                shooter1.setPower(0.0);
+                shooter2.setPower(0.0);// Stop motor
+
+            }
+
+            //shooter controled by right bunper, intake by a
+            shooter1.setPower(powerShooter);
+            shooter2.setPower(powerShooter);
+
+            if (gamepad2.a) {
+                intake.setPower(1.0);  // Full speed forward
+            } else {
+                intake.setPower(0.0);  // Stop motor
+            }
+
+            //windmill controlled by left bumper
+            if (gamepad2.left_bumper) {
+                windmill.setPower(1.0); // Spin at half speed (adjust as needed)
+            } else {
+                windmill.setPower(0.0); // Stop spinning
+            }
+            // Show the elapsed game time and wheel power.
+            telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
+            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
+            telemetry.addData("Current shotpower", "%4.2f", powerShooter);
+            telemetry.addData("current x position","%4.2f",currentPosition.getX(DistanceUnit.INCH));
+            telemetry.addData("current y position","%4.2f",currentPosition.getY(DistanceUnit.INCH));
+            telemetry.addData("current angles","%4.2f",currentPosition.getHeading(AngleUnit.DEGREES));
+            telemetry.update();
         }
     }
 }
+
