@@ -81,11 +81,12 @@ public class AutonomousRed extends LinearOpMode {
     private DcMotor backLeftDrive = null;
     private DcMotor frontRightDrive = null;
     private DcMotor backRightDrive = null;
-    /*private DcMotor shooter1 = null;
+
+    private DcMotor shooter1 = null;
     private DcMotor shooter2 = null;
     private DcMotor intake = null;
     private DcMotor windmill = null;
-    */
+
     @Override
     public void runOpMode() throws InterruptedException
     {
@@ -95,11 +96,10 @@ public class AutonomousRed extends LinearOpMode {
         frontRightDrive = hardwareMap.get(DcMotor.class, "frontRight");
         backLeftDrive = hardwareMap.get(DcMotor.class, "backLeft");
         backRightDrive = hardwareMap.get(DcMotor.class, "backRight");
-        /*shooter1 = hardwareMap.get(DcMotor.class, "shooter1");
-        shooter2 = hardwareMap.get(DcMotor.class, "shooter2");
-        intake = hardwareMap.get(DcMotor.class, "intake");
-        windmill = hardwareMap.get(DcMotor.class, "windmill");
-        */
+        //shooter1 = hardwareMap.get(DcMotor.class, "shooter1");
+        //shooter2 = hardwareMap.get(DcMotor.class, "shooter2");
+        //intake = hardwareMap.get(DcMotor.class, "intake");
+        //windmill = hardwareMap.get(DcMotor.class, "windmill");
         telemetry.setMsTransmissionInterval(11);
 
         limelight.pipelineSwitch(0);
@@ -109,7 +109,8 @@ public class AutonomousRed extends LinearOpMode {
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
-        /*shooter1.setDirection(DcMotor.Direction.FORWARD);
+        /*
+        shooter1.setDirection(DcMotor.Direction.FORWARD);
         shooter2.setDirection(DcMotor.Direction.REVERSE);
         intake.setDirection(DcMotor.Direction.FORWARD);
         windmill.setDirection(DcMotor.Direction.FORWARD);
@@ -119,10 +120,10 @@ public class AutonomousRed extends LinearOpMode {
         limelight.start();
 
         telemetry.addData(">", "Robot Ready.  Press Play.");
-        telemetry.update();
         waitForStart();
 
         while (opModeIsActive()) {
+            Pose2D pose2D = pinpoint.getPosition();
             LLStatus status = limelight.getStatus();
             telemetry.addData("Name", "%s",
                     status.getName());
@@ -182,16 +183,33 @@ public class AutonomousRed extends LinearOpMode {
                 telemetry.addData("Limelight", "No data available");
             }
             //This is the code to set the power of the motors based on the encoders
-            Pose2D pose2D = pinpoint.getPosition();
-            double target = pose2D.getX(DistanceUnit.INCH);
-            while (target <= 20) {
-                frontLeftDrive.setPower(0.3);
-                frontRightDrive.setPower(0.3);
-                backLeftDrive.setPower(0.3);
-                backRightDrive.setPower(0.3);
-                double x = pose2D.getX(DistanceUnit.INCH);
-            }
-            telemetry.update();
+            double targetX = pinpoint.getPosition().getX(DistanceUnit.INCH);
+
+                if (targetX <= 20) {
+                    frontLeftDrive.setPower(0.3);
+                    frontRightDrive.setPower(0.3);
+                    backLeftDrive.setPower(0.3);
+                    backRightDrive.setPower(0.3);
+
+                    //targetX = pinpoint.getPosition().getX(DistanceUnit.INCH);
+                }
+                double targetY = pinpoint.getPosition().getY(DistanceUnit.INCH);
+                if (targetY <= 20) {
+
+                    frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+                    backRightDrive.setDirection(DcMotor.Direction.REVERSE);
+
+                    frontLeftDrive.setPower(0.3);
+                    frontRightDrive.setPower(0.3);
+                    backLeftDrive.setPower(0.3);
+                    backRightDrive.setPower(0.3);
+
+                    //targetY = pinpoint.getPosition().getY(DistanceUnit.INCH);
+                }
+                telemetry.addData("X coordinate (IN)", pose2D.getX(DistanceUnit.INCH));
+                telemetry.addData("Y coordinate (IN)", pose2D.getY(DistanceUnit.INCH));
+                telemetry.addData("Heading angle (DEGREES)", pose2D.getHeading(AngleUnit.DEGREES));
+                telemetry.update();
 
         }
         limelight.stop();
