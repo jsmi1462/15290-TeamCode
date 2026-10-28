@@ -16,24 +16,23 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 @Autonomous(name = "Autonomous Red Up", group = "Sensor")
 public class AutonomousRed extends LinearOpMode {
-
     private static final double DRIVE_POWER = 0.3;
-    private static final double TARGET_X_IN = 27.0;   // forward distance
-    private static final double TARGET_Y_IN = 30.0;   // strafe distance (+Y = left on Pinpoint)
     private static final double TARGET_X_IN = 82.0;   // forward distance
-    private static final double TARGET_Y_IN = 42.0;
+    private static final double TARGET_Y_IN = 42.0;   // strafe distance (+Y = left on Pinpoint)
+    //private static final double TARGET_X_IN = 82.0;   // forward distance
+    //private static final double TARGET_Y_IN = 42.0;
     private static final double TOLERANCE_IN = 0.5;
     private static final double TIMEOUT_S = 28.0;
 
-    private enum State { DRIVE_FORWARD, STRAFE, DONE }
+    private enum State { FIRST_FORWARD, SECOND_FORWARD, FIRST_STRAFE, SECOND_STRAFE, DONE }
 
     private GoBildaPinpointDriver pinpoint;
     private Limelight3A limelight;
     private final ElapsedTime runtime = new ElapsedTime();
 
     private DcMotor frontLeftDrive, backLeftDrive, frontRightDrive, backRightDrive;
-
     @Override
+
     public void runOpMode() throws InterruptedException {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
@@ -62,30 +61,46 @@ public class AutonomousRed extends LinearOpMode {
         telemetry.update();
         waitForStart();
         runtime.reset();
+        AutonomousRed.State state = AutonomousRed.State.FIRST_FORWARD;
 
-        State state = State.DRIVE_FORWARD;
-
-        while (opModeIsActive() && state != State.DONE) {
+        while (opModeIsActive() && state != AutonomousRed.State.DONE) {
             pinpoint.update(); // required every loop or position never changes
             Pose2D pose = pinpoint.getPosition();
             double x = pose.getX(DistanceUnit.INCH);
             double y = pose.getY(DistanceUnit.INCH);
 
             if (runtime.seconds() > TIMEOUT_S) {
-                state = State.DONE;
+                state = AutonomousRed.State.DONE;
             }
 
             switch (state) {
-                case DRIVE_FORWARD:
-                    if (x < TARGET_X_IN - TOLERANCE_IN) {
+                case FIRST_FORWARD:
+                    if (x < (TARGET_X_IN - 55 ) - TOLERANCE_IN ) {
                         drive(DRIVE_POWER, 0);
                     } else {
                         stopDrive();
-                        state = State.STRAFE;
+                        state = AutonomousRed.State.FIRST_STRAFE;
                     }
                     break;
 
-                case STRAFE:
+                case FIRST_STRAFE:
+                    if (y < (TARGET_Y_IN - 12) - TOLERANCE_IN) {
+                        drive(0, DRIVE_POWER); // strafe left
+                    } else {
+                        stopDrive();
+                        state = State.SECOND_FORWARD;
+                    }
+                    break;
+                case SECOND_FORWARD:
+                    if (x < TARGET_X_IN - TOLERANCE_IN ) {
+                        drive(DRIVE_POWER, 0);
+                    } else {
+                        stopDrive();
+                        state = AutonomousRed.State.SECOND_STRAFE;
+                    }
+                    break;
+
+                case SECOND_STRAFE:
                     if (y < TARGET_Y_IN - TOLERANCE_IN) {
                         drive(0, DRIVE_POWER); // strafe left
                     } else {
@@ -93,7 +108,6 @@ public class AutonomousRed extends LinearOpMode {
                         state = State.DONE;
                     }
                     break;
-
                 case DONE:
                     break;
             }
@@ -105,11 +119,9 @@ public class AutonomousRed extends LinearOpMode {
             telemetry.addData("Heading (deg)", "%.1f", pose.getHeading(AngleUnit.DEGREES));
             telemetry.update();
         }
-
         stopDrive();
         limelight.stop();
     }
-
     /** forward > 0 drives forward, strafe > 0 strafes left (mecanum). */
     private void drive(double forward, double strafe) {
         frontLeftDrive.setPower(forward - strafe);
@@ -121,7 +133,6 @@ public class AutonomousRed extends LinearOpMode {
     private void stopDrive() {
         drive(0, 0);
     }
-
     private void addLimelightTelemetry() {
         LLStatus status = limelight.getStatus();
         telemetry.addData("LL", "Temp: %.1fC, CPU: %.1f%%, FPS: %d",
