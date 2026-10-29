@@ -17,8 +17,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 @Autonomous(name = "Autonomous Up", group = "Sensor")
 public class AutonomousUp extends LinearOpMode {
     private static final double DRIVE_POWER = 0.3;
-    private static final double TARGET_X_IN = 82.0;   // forward distance
-    private static final double TARGET_Y_IN = 42.0;   // strafe distance (+Y = left on Pinpoint)
+    private static final double TARGET_X_IN = -82.0;   // forward distance
+    private static final double TARGET_Y_IN = -42.0;   // strafe distance (+Y = left on Pinpoint)
     //private static final double TARGET_X_IN = 82.0;   // forward distance
     //private static final double TARGET_Y_IN = 42.0;
     private static final double TOLERANCE_IN = 0.5;
@@ -75,7 +75,7 @@ public class AutonomousUp extends LinearOpMode {
 
             switch (state) {
                 case FIRST_FORWARD:
-                    if (x < (TARGET_X_IN - 55 ) - TOLERANCE_IN ) {
+                    if (x < (TARGET_X_IN + 55 ) - TOLERANCE_IN ) {
                         drive(DRIVE_POWER, 0);
                     } else {
                         stopDrive();
@@ -84,7 +84,7 @@ public class AutonomousUp extends LinearOpMode {
                     break;
 
                 case FIRST_STRAFE:
-                    if (y < (TARGET_Y_IN - 12) - TOLERANCE_IN) {
+                    if (y < (TARGET_Y_IN + 12) - TOLERANCE_IN) {
                         drive(0, DRIVE_POWER); // strafe left
                     } else {
                         stopDrive();

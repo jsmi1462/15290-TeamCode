@@ -17,8 +17,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 @Autonomous(name = "Autonomous Down", group = "Sensor")
 public class AutonomousDown extends LinearOpMode {
     private static final double DRIVE_POWER = 0.3;
-    private static final double TARGET_X_IN = 82.0;   // forward distance
-    private static final double TARGET_Y_IN = 42.0;   // strafe distance (+Y = left on Pinpoint)
+    private static final double TARGET_X_IN = -13.0;   // forward distance
+    private static final double TARGET_Y_IN = 47.0;   // strafe distance (+Y = left on Pinpoint)
 
     private static final double TOLERANCE_IN = 0.5;
     private static final double TIMEOUT_S = 28.0;
