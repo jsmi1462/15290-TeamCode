@@ -19,12 +19,11 @@ public class AutonomousDown extends LinearOpMode {
     private static final double DRIVE_POWER = 0.3;
     private static final double TARGET_X_IN = 82.0;   // forward distance
     private static final double TARGET_Y_IN = 42.0;   // strafe distance (+Y = left on Pinpoint)
-    //private static final double TARGET_X_IN = 82.0;   // forward distance
-    //private static final double TARGET_Y_IN = 42.0;
+
     private static final double TOLERANCE_IN = 0.5;
     private static final double TIMEOUT_S = 28.0;
 
-    private enum State { FIRST_FORWARD, SECOND_FORWARD, FIRST_STRAFE, SECOND_STRAFE, DONE }
+    private enum State { FIRST_FORWARD, FIRST_STRAFE, DONE }
 
     private GoBildaPinpointDriver pinpoint;
     private Limelight3A limelight;
@@ -75,7 +74,7 @@ public class AutonomousDown extends LinearOpMode {
 
             switch (state) {
                 case FIRST_FORWARD:
-                    if (x < (TARGET_X_IN - 55 ) - TOLERANCE_IN ) {
+                    if (x < TARGET_X_IN - TOLERANCE_IN ) {
                         drive(DRIVE_POWER, 0);
                     } else {
                         stopDrive();
@@ -84,24 +83,7 @@ public class AutonomousDown extends LinearOpMode {
                     break;
 
                 case FIRST_STRAFE:
-                    if (y < (TARGET_Y_IN - 12) - TOLERANCE_IN) {
-                        drive(0, DRIVE_POWER); // strafe left
-                    } else {
-                        stopDrive();
-                        state = AutonomousDown.State.SECOND_FORWARD;
-                    }
-                    break;
-                case SECOND_FORWARD:
-                    if (x < TARGET_X_IN - TOLERANCE_IN ) {
-                        drive(DRIVE_POWER, 0);
-                    } else {
-                        stopDrive();
-                        state = AutonomousDown.State.SECOND_STRAFE;
-                    }
-                    break;
-
-                case SECOND_STRAFE:
-                    if (y < TARGET_Y_IN - TOLERANCE_IN) {
+                    if (y < TARGET_Y_IN + TOLERANCE_IN) {
                         drive(0, DRIVE_POWER); // strafe left
                     } else {
                         stopDrive();
