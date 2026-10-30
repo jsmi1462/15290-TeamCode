@@ -66,7 +66,7 @@ public class AutoDown extends LinearOpMode {
             pinpoint.update(); // required every loop or position never changes
             Pose2D pose = pinpoint.getPosition();
             double x = pose.getX(DistanceUnit.INCH);
-            double y = -pose.getY(DistanceUnit.INCH); // Pinpoint +Y is right on this robot, so y = inches left
+            double y = -pose.getY(DistanceUnit.INCH); // Pinpoint +Y is right on this robot, so flip it: y = inches left
 
             if (runtime.seconds() > TIMEOUT_S) {
                 state = AutoDown.State.DONE;
@@ -83,8 +83,8 @@ public class AutoDown extends LinearOpMode {
                     break;
 
                 case FIRST_STRAFE:
-                    if (Math.abs(TARGET_Y_IN - y) > TOLERANCE_IN) {
-                        strafeToward(TARGET_Y_IN, y);
+                    if (y < TARGET_Y_IN - TOLERANCE_IN) {
+                        drive(0, DRIVE_POWER); // strafe left
                     } else {
                         stopDrive();
                         state = AutoDown.State.DONE;
@@ -106,18 +106,10 @@ public class AutoDown extends LinearOpMode {
     }
     /** forward > 0 drives forward, strafe > 0 strafes left (mecanum). */
     private void drive(double forward, double strafe) {
-        frontLeftDrive.setPower(forward - strafe);
-        backLeftDrive.setPower(forward + strafe);
-        frontRightDrive.setPower(forward + strafe);
-        backRightDrive.setPower(forward - strafe);
-    }
-
-    /**
-     * Strafes toward targetY; y is inches left (Pinpoint Y negated), so a positive target goes left and a negative one right.
-     * On this robot a positive strafe power physically moves right, so the sign is negated.
-     */
-    private void strafeToward(double targetY, double currentY) {
-        drive(0, -Math.signum(targetY - currentY) * DRIVE_POWER);
+        frontLeftDrive.setPower(forward + strafe);
+        backLeftDrive.setPower(forward - strafe);
+        frontRightDrive.setPower(forward - strafe);
+        backRightDrive.setPower(forward + strafe);
     }
 
     private void stopDrive() {
