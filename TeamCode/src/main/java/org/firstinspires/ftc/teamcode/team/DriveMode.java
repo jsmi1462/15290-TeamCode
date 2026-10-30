@@ -187,31 +187,15 @@ public class DriveMode extends LinearOpMode {
             backLeftDrive.setPower(backLeftPower);
             backRightDrive.setPower(backRightPower);
 
-            if (gamepad2.y && !lastY && powerShooter < 1.0) {
-                powerShooter += 0.01;
+            // One tap = one 0.1 step. Only the moment the button goes down counts, not how long it is held.
+            if (gamepad2.y && !lastY) {
+                powerShooter = Math.min(1.0, Math.round((powerShooter + 0.1) * 10) / 10.0);
             }
-
+            if (gamepad2.x && !lastX) {
+                powerShooter = Math.max(0.2, Math.round((powerShooter - 0.1) * 10) / 10.0);
+            }
             lastY = gamepad2.y;
-
-            if (gamepad2.y) {
-                powerShooter += 0.05;
-                if (powerShooter > 1.0) {
-                    powerShooter = 0.2;
-                }
-            }
-
-            if (gamepad2.x && !lastX && powerShooter < 1.0) {
-                powerShooter += 0.01;
-            }
-
             lastX = gamepad2.x;
-
-            if (gamepad2.x) {
-                powerShooter = powerShooter - 0.05;
-                if (powerShooter < 0.2) {
-                    powerShooter = 1.0;
-                }
-            }
 
             // Shooters stay spun up at powerShooter (Y raises it, X lowers it) so they don't have to spool from zero
             // Emergency override: hold B on either gamepad to cut power to the flywheels.
