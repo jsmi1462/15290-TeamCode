@@ -19,6 +19,7 @@ public class AutoRed extends LinearOpMode {
     private static final double DRIVE_POWER = 0.3;
     private static final double TARGET_X_IN = 82.0;   // forward distance
     private static final double TARGET_Y_IN = 42.0;   // strafe distance (+Y = left on Pinpoint)
+    private static final double FIRST_STRAFE_Y_IN = TARGET_Y_IN - 12.0;
     private static final double TOLERANCE_IN = 0.5;
     private static final double TIMEOUT_S = 28.0;
 
@@ -83,8 +84,8 @@ public class AutoRed extends LinearOpMode {
                     break;
 
                 case FIRST_STRAFE:
-                    if (y > ((TARGET_Y_IN - TOLERANCE_IN) * -1) + 12) {
-                        drive(0, DRIVE_POWER); // strafe left
+                    if (Math.abs(FIRST_STRAFE_Y_IN - y) > TOLERANCE_IN) {
+                        strafeToward(FIRST_STRAFE_Y_IN, y);
                     } else {
                         stopDrive();
                         state = State.SECOND_FORWARD;
@@ -100,8 +101,8 @@ public class AutoRed extends LinearOpMode {
                     break;
 
                 case SECOND_STRAFE:
-                    if (y > (TARGET_Y_IN - TOLERANCE_IN) * -1) {
-                        drive(0, DRIVE_POWER); // strafe left
+                    if (Math.abs(TARGET_Y_IN - y) > TOLERANCE_IN) {
+                        strafeToward(TARGET_Y_IN, y);
                     } else {
                         stopDrive();
                         state = State.DONE;
@@ -130,6 +131,11 @@ public class AutoRed extends LinearOpMode {
         backLeftDrive.setPower(forward + strafe);
         frontRightDrive.setPower(forward + strafe);
         backRightDrive.setPower(forward - strafe);
+    }
+
+    /** Strafes toward targetY; +Y is left on Pinpoint, so a positive target goes left and a negative one right. */
+    private void strafeToward(double targetY, double currentY) {
+        drive(0, Math.signum(targetY - currentY) * DRIVE_POWER);
     }
 
     private void stopDrive() {
