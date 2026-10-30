@@ -83,8 +83,8 @@ public class AutoDown extends LinearOpMode {
                     break;
 
                 case FIRST_STRAFE:
-                    if (y < TARGET_Y_IN + TOLERANCE_IN) {
-                        drive(0, DRIVE_POWER); // strafe left
+                    if (Math.abs(TARGET_Y_IN - y) > TOLERANCE_IN) {
+                        strafeToward(TARGET_Y_IN, y);
                     } else {
                         stopDrive();
                         state = AutoDown.State.DONE;
@@ -110,6 +110,14 @@ public class AutoDown extends LinearOpMode {
         backLeftDrive.setPower(forward + strafe);
         frontRightDrive.setPower(forward + strafe);
         backRightDrive.setPower(forward - strafe);
+    }
+
+    /**
+     * Strafes toward targetY; +Y is left on Pinpoint, so a positive target goes left and a negative one right.
+     * On this robot a positive strafe power physically moves right, so the sign is negated.
+     */
+    private void strafeToward(double targetY, double currentY) {
+        drive(0, -Math.signum(targetY - currentY) * DRIVE_POWER);
     }
 
     private void stopDrive() {
