@@ -127,6 +127,8 @@ public class DriveMode extends LinearOpMode {
         runtime.reset();
 
         double powerShooter = 0.2;
+        boolean lastY = false;
+        boolean lastX = false;
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
@@ -185,14 +187,11 @@ public class DriveMode extends LinearOpMode {
             backLeftDrive.setPower(backLeftPower);
             backRightDrive.setPower(backRightPower);
 
-            boolean lastY = false;
-            boolean lastX = false;
-
             if (gamepad2.y && !lastY && powerShooter < 1.0) {
                 powerShooter += 0.01;
             }
 
-            lastY = true;
+            lastY = gamepad2.y;
 
             if (gamepad2.y) {
                 powerShooter += 0.05;
@@ -215,7 +214,7 @@ public class DriveMode extends LinearOpMode {
                 powerShooter += 0.01;
             }
 
-            lastX = true;
+            lastX = gamepad2.x;
 
             if (gamepad2.x) {
                 powerShooter = powerShooter - 0.05;
