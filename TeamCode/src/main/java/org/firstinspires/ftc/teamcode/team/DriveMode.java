@@ -139,7 +139,7 @@ public class DriveMode extends LinearOpMode {
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
             double axial = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
             double lateral = gamepad1.left_stick_x;
-            double yaw = gamepad1.right_stick_x;
+            double yaw = -gamepad1.right_stick_x;  // negated: this robot turns the opposite way from the textbook mapping
 
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
@@ -214,8 +214,10 @@ public class DriveMode extends LinearOpMode {
             }
 
             // Shooters stay spun up at powerShooter (Y raises it, X lowers it) so they don't have to spool from zero
-            shooter1.setPower(powerShooter);
-            shooter2.setPower(powerShooter);
+            // Emergency override: hold B on either gamepad to cut power to the flywheels.
+            boolean flywheelStop = gamepad1.b || gamepad2.b;
+            shooter1.setPower(flywheelStop ? 0.0 : powerShooter);
+            shooter2.setPower(flywheelStop ? 0.0 : powerShooter);
 
             if (gamepad2.a) {
                 intake.setPower(1.0);  // Full speed forward
@@ -234,6 +236,7 @@ public class DriveMode extends LinearOpMode {
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
             telemetry.addData("Current shotpower", "%4.2f", powerShooter);
+            telemetry.addData("Flywheel E-STOP", flywheelStop ? "ACTIVE" : "off");
             telemetry.addData("current x position","%4.2f",currentPosition.getX(DistanceUnit.INCH));
             telemetry.addData("current y position","%4.2f",currentPosition.getY(DistanceUnit.INCH));
             telemetry.addData("current angles","%4.2f",currentPosition.getHeading(AngleUnit.DEGREES));
