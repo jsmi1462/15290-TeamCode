@@ -105,13 +105,28 @@ You will do this again whenever the robot changes: new wheels, a moved odometry 
 - **You changed something and it got worse.** `git status` shows what changed. `git restore <file>`
   throws away your edits to that file and goes back to your last commit. This cannot be undone.
 - **The robot does something unexpected.** Hit STOP on the Driver Station first. Then look at the code.
-- **The robot drives or strafes the wrong way in auto.** On our robot the raw Pinpoint reads NEGATIVE going
-  forward and NEGATIVE going left, so the targets in `AutoUp` are negative (-27, -39, -86) and the checks are
-  `x > target + TOLERANCE_IN`. The odometer is never reset, so every target is an absolute reading, not a
-  distance to drive. Check the signs by pushing the robot by hand and watching `X (in)` and `Y (in)` in telemetry.
-  Also, `drive()` has its strafe terms flipped so `strafe > 0` really moves left.
-- **The robot strafes forever and never stops.** The stop check is probably on the wrong side of the target.
-  Print `Y (in)` in telemetry and make sure it moves toward your target, not away from it.
+- **The robot drives or strafes the wrong way in auto.** Our robot is not the textbook one, so do not trust
+  textbook signs. These are measured and work:
+  - The Pinpoint reads NEGATIVE going forward and NEGATIVE going left (right is positive).
+  - `drive()` has its strafe terms flipped, so `strafe > 0` really moves left.
+  - Every target is an absolute reading. We never reset the odometer, so the second forward in `AutoUp`
+    keeps going from where the first one stopped.
+
+  `AutoUp`: forward until `x` reaches -27, strafe left until `y` reaches -39, forward until `x` reaches -86.
+  `AutoDown`: forward until `x` reaches 13, strafe right until `y` reaches 47.
+
+  To check a sign, push the robot by hand and watch `X (in)` and `Y (in)` in telemetry. Change one thing at
+  a time.
+- **The robot strafes or drives forever and never stops.** The stop check is on the wrong side of the target,
+  or the sign of the reading is the opposite of what you assumed. Watch `X (in)` / `Y (in)` and make sure it
+  moves toward your target, not away from it.
+- **The robot slowly rotates while driving in auto.** The autos hold the heading they started with. In
+  `drive()`, `turn = headingError * HEADING_GAIN` is added to the wheels. Telemetry shows `Heading error (deg)`.
+  - It spins faster or in circles: the turn sign is backwards. Flip the sign of `HEADING_GAIN`.
+  - It straightens out but twitches back and forth: lower `HEADING_GAIN`.
+  - It still drifts: raise `HEADING_GAIN` a little.
+
+  If the heading error gets past about 45 degrees the auto stops on purpose, so a bad sign does not spin the robot.
 
 ## 7. Rules for the team
 
