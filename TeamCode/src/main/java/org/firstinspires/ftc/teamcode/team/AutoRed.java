@@ -7,7 +7,6 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -16,7 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 @Autonomous(name = "Autonomous Up", group = "Sensor")
-public class AutonomousUp extends LinearOpMode {
+public class AutoRed extends LinearOpMode {
     private static final double DRIVE_POWER = 0.3;
     private static final double TARGET_X_IN = 82.0;   // forward distance
     private static final double TARGET_Y_IN = 42.0;   // strafe distance (+Y = left on Pinpoint)
@@ -61,16 +60,16 @@ public class AutonomousUp extends LinearOpMode {
         telemetry.update();
         waitForStart();
         runtime.reset();
-        AutonomousUp.State state = AutonomousUp.State.FIRST_FORWARD;
+        AutoRed.State state = AutoRed.State.FIRST_FORWARD;
 
-        while (opModeIsActive() && state != AutonomousUp.State.DONE) {
+        while (opModeIsActive() && state != AutoRed.State.DONE) {
             pinpoint.update(); // required every loop or position never changes
             Pose2D pose = pinpoint.getPosition();
             double x = pose.getX(DistanceUnit.INCH);
             double y = pose.getY(DistanceUnit.INCH);
 
             if (runtime.seconds() > TIMEOUT_S) {
-                state = AutonomousUp.State.DONE;
+                state = AutoRed.State.DONE;
             }
 
             switch (state) {
@@ -79,7 +78,7 @@ public class AutonomousUp extends LinearOpMode {
                         drive(DRIVE_POWER, 0);
                     } else {
                         stopDrive();
-                        state = AutonomousUp.State.FIRST_STRAFE;
+                        state = AutoRed.State.FIRST_STRAFE;
                     }
                     break;
 
@@ -96,7 +95,7 @@ public class AutonomousUp extends LinearOpMode {
                         drive(DRIVE_POWER, 0);
                     } else {
                         stopDrive();
-                        state = AutonomousUp.State.SECOND_STRAFE;
+                        state = AutoRed.State.SECOND_STRAFE;
                     }
                     break;
 

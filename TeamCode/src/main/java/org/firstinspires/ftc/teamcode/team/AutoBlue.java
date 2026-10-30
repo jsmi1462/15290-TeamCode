@@ -15,7 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 @Autonomous(name = "Autonomous Down", group = "Sensor")
-public class AutonomousDown extends LinearOpMode {
+public class AutoBlue extends LinearOpMode {
     private static final double DRIVE_POWER = 0.3;
     private static final double TARGET_X_IN = 13.0;   // forward distance
     private static final double TARGET_Y_IN = 47.0;   // strafe distance (+Y = left on Pinpoint)
@@ -60,16 +60,16 @@ public class AutonomousDown extends LinearOpMode {
         telemetry.update();
         waitForStart();
         runtime.reset();
-        AutonomousDown.State state = AutonomousDown.State.FIRST_FORWARD;
+        AutoBlue.State state = AutoBlue.State.FIRST_FORWARD;
 
-        while (opModeIsActive() && state != AutonomousDown.State.DONE) {
+        while (opModeIsActive() && state != AutoBlue.State.DONE) {
             pinpoint.update(); // required every loop or position never changes
             Pose2D pose = pinpoint.getPosition();
             double x = pose.getX(DistanceUnit.INCH);
             double y = pose.getY(DistanceUnit.INCH);
 
             if (runtime.seconds() > TIMEOUT_S) {
-                state = AutonomousDown.State.DONE;
+                state = AutoBlue.State.DONE;
             }
 
             switch (state) {
@@ -78,7 +78,7 @@ public class AutonomousDown extends LinearOpMode {
                         drive(DRIVE_POWER, 0);
                     } else {
                         stopDrive();
-                        state = AutonomousDown.State.FIRST_STRAFE;
+                        state = AutoBlue.State.FIRST_STRAFE;
                     }
                     break;
 
@@ -87,7 +87,7 @@ public class AutonomousDown extends LinearOpMode {
                         drive(0, DRIVE_POWER); // strafe left
                     } else {
                         stopDrive();
-                        state = AutonomousDown.State.DONE;
+                        state = AutoBlue.State.DONE;
                     }
                     break;
                 case DONE:
