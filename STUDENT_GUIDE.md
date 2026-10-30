@@ -105,10 +105,10 @@ You will do this again whenever the robot changes: new wheels, a moved odometry 
 - **You changed something and it got worse.** `git status` shows what changed. `git restore <file>`
   throws away your edits to that file and goes back to your last commit. This cannot be undone.
 - **The robot does something unexpected.** Hit STOP on the Driver Station first. Then look at the code.
-- **The robot only strafes one direction in auto.** On the Pinpoint, +Y is left and -Y is right. A strafe
+- **The robot only strafes one direction in auto.** On our robot the Pinpoint reports +Y as right, so the autos negate it (`y = -pose.getY(...)`) and treat +y as left. A strafe
   loop that always drives with one power sign and only checks `y > something` can never reverse. Drive
   toward the target instead: `-Math.signum(targetY - y) * DRIVE_POWER` (see `strafeToward` in `AutoUp`).
-  A positive target goes left, a negative target goes right. If it goes the wrong way, flip the sign: on our robot a positive strafe power moves right, so `strafeToward` negates it.
+  A positive target goes left, a negative target goes right. Two signs can be wrong: the Pinpoint Y and the strafe power. On our robot both are flipped. Watch `Y (in)` in telemetry while the robot strafes: if it climbs the wrong way, flip the Y sign; if the robot drives away from the target, flip the power sign.
 - **The robot strafes forever and never stops.** The stop check is probably on the wrong side of the target.
   Print `Y (in)` in telemetry and make sure it moves toward your target, not away from it.
 

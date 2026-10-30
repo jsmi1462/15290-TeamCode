@@ -18,7 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 public class AutoDown extends LinearOpMode {
     private static final double DRIVE_POWER = 0.3;
     private static final double TARGET_X_IN = 13.0;   // forward distance
-    private static final double TARGET_Y_IN = 47.0;   // strafe distance (+Y = left on Pinpoint)
+    private static final double TARGET_Y_IN = 47.0;   // strafe distance (y = inches left)
 
     private static final double TOLERANCE_IN = 0.5;
     private static final double TIMEOUT_S = 28.0;
@@ -66,7 +66,7 @@ public class AutoDown extends LinearOpMode {
             pinpoint.update(); // required every loop or position never changes
             Pose2D pose = pinpoint.getPosition();
             double x = pose.getX(DistanceUnit.INCH);
-            double y = pose.getY(DistanceUnit.INCH);
+            double y = -pose.getY(DistanceUnit.INCH); // Pinpoint +Y is right on this robot, so y = inches left
 
             if (runtime.seconds() > TIMEOUT_S) {
                 state = AutoDown.State.DONE;
@@ -113,7 +113,7 @@ public class AutoDown extends LinearOpMode {
     }
 
     /**
-     * Strafes toward targetY; +Y is left on Pinpoint, so a positive target goes left and a negative one right.
+     * Strafes toward targetY; y is inches left (Pinpoint Y negated), so a positive target goes left and a negative one right.
      * On this robot a positive strafe power physically moves right, so the sign is negated.
      */
     private void strafeToward(double targetY, double currentY) {
