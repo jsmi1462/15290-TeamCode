@@ -22,6 +22,7 @@ public class AutoUp extends LinearOpMode {
     private static final double FIRST_FORWARD_X_IN = -27.0;
     private static final double STRAFE_Y_IN = -39.0;
     private static final double SECOND_FORWARD_X_IN = -86.0;
+    private static final double HEADING_GAIN = 1.0;   // turn power per radian of heading error
     private static final double TOLERANCE_IN = 0.5;
     private static final double TIMEOUT_S = 28.0;
 
@@ -29,6 +30,7 @@ public class AutoUp extends LinearOpMode {
 
     private GoBildaPinpointDriver pinpoint;
     private Limelight3A limelight;
+    private double headingRad;   // latest Pinpoint heading, 0 = the way the robot started
     private final ElapsedTime runtime = new ElapsedTime();
 
     private DcMotor frontLeftDrive, backLeftDrive, frontRightDrive, backRightDrive;
@@ -68,6 +70,7 @@ public class AutoUp extends LinearOpMode {
         while (opModeIsActive() && state != AutoUp.State.DONE) {
             pinpoint.update(); // required every loop or position never changes
             Pose2D pose = pinpoint.getPosition();
+            headingRad = pose.getHeading(AngleUnit.RADIANS);
             double x = pose.getX(DistanceUnit.INCH);
             double y = pose.getY(DistanceUnit.INCH);
 
@@ -119,17 +122,22 @@ public class AutoUp extends LinearOpMode {
     }
 
     /**
-     * forward > 0 drives forward, strafe > 0 strafes left (mecanum).
+     * forward > 0 drives forward, strafe > 0 strafes left (mecanum). Also steers to hold the starting heading.
      */
     private void drive(double forward, double strafe) {
-        frontLeftDrive.setPower(forward + strafe);
-        backLeftDrive.setPower(forward - strafe);
-        frontRightDrive.setPower(forward - strafe);
-        backRightDrive.setPower(forward + strafe);
+        // Pinpoint heading is + counterclockwise, so a negative heading (drifting right) turns us back left.
+        double turn = -headingRad * HEADING_GAIN;
+        frontLeftDrive.setPower(forward + strafe - turn);
+        backLeftDrive.setPower(forward - strafe - turn);
+        frontRightDrive.setPower(forward - strafe + turn);
+        backRightDrive.setPower(forward + strafe + turn);
     }
 
     private void stopDrive() {
-        drive(0, 0);
+        frontLeftDrive.setPower(0);
+        backLeftDrive.setPower(0);
+        frontRightDrive.setPower(0);
+        backRightDrive.setPower(0);
     }
 
     private void addLimelightTelemetry() {
