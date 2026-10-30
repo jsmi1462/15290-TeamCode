@@ -18,8 +18,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 public class AutoUp extends LinearOpMode {
     private static final double DRIVE_POWER = 0.3;
     private static final double TARGET_X_IN = 82.0;   // forward distance
-    private static final double TARGET_Y_IN = 42.0;   // strafe distance (y = inches left)
-    private static final double FIRST_STRAFE_Y_IN = TARGET_Y_IN - 12.0;
+    private static final double TARGET_Y_IN = 50;   // strafe distance (y = inches left)
+    private static final double FIRST_STRAFE_Y_IN = TARGET_Y_IN - 20;
     private static final double TOLERANCE_IN = 0.5;
     private static final double TIMEOUT_S = 28.0;
 
