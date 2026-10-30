@@ -83,7 +83,7 @@ public class AutoRed extends LinearOpMode {
                     break;
 
                 case FIRST_STRAFE:
-                    if (y > ((TARGET_Y_IN - TOLERANCE_IN) * -1) + 12) {
+                    if (y > (TARGET_Y_IN -12 ) - TOLERANCE_IN) {
                         drive(0, DRIVE_POWER); // strafe left
                     } else {
                         stopDrive();
@@ -100,7 +100,7 @@ public class AutoRed extends LinearOpMode {
                     break;
 
                 case SECOND_STRAFE:
-                    if (y > (TARGET_Y_IN - TOLERANCE_IN) * -1) {
+                    if (y > TARGET_Y_IN - TOLERANCE_IN) {
                         drive(0, DRIVE_POWER); // strafe left
                     } else {
                         stopDrive();
