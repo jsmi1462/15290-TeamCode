@@ -7,6 +7,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -17,10 +18,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 @Autonomous(name = "Autonomous Up", group = "Sensor")
 public class AutonomousUp extends LinearOpMode {
     private static final double DRIVE_POWER = 0.3;
-    private static final double TARGET_X_IN = -82.0;   // forward distance
-    private static final double TARGET_Y_IN = -42.0;   // strafe distance (+Y = left on Pinpoint)
-    //private static final double TARGET_X_IN = 82.0;   // forward distance
-    //private static final double TARGET_Y_IN = 42.0;
+    private static final double TARGET_X_IN = 82.0;   // forward distance
+    private static final double TARGET_Y_IN = 42.0;   // strafe distance (+Y = left on Pinpoint)
     private static final double TOLERANCE_IN = 0.5;
     private static final double TIMEOUT_S = 28.0;
 
@@ -75,7 +74,7 @@ public class AutonomousUp extends LinearOpMode {
 
             switch (state) {
                 case FIRST_FORWARD:
-                    if (x < (TARGET_X_IN + 55 ) - TOLERANCE_IN ) {
+                    if (x < (TARGET_X_IN - 55 ) - TOLERANCE_IN ) {
                         drive(DRIVE_POWER, 0);
                     } else {
                         stopDrive();
@@ -84,7 +83,7 @@ public class AutonomousUp extends LinearOpMode {
                     break;
 
                 case FIRST_STRAFE:
-                    if (y < (TARGET_Y_IN + 12) - TOLERANCE_IN) {
+                    if (y > ((TARGET_Y_IN - TOLERANCE_IN) * -1) + 12) {
                         drive(0, DRIVE_POWER); // strafe left
                     } else {
                         stopDrive();
@@ -101,7 +100,7 @@ public class AutonomousUp extends LinearOpMode {
                     break;
 
                 case SECOND_STRAFE:
-                    if (y < TARGET_Y_IN - TOLERANCE_IN) {
+                    if (y > (TARGET_Y_IN - TOLERANCE_IN) * -1) {
                         drive(0, DRIVE_POWER); // strafe left
                     } else {
                         stopDrive();
@@ -153,7 +152,7 @@ public class AutonomousUp extends LinearOpMode {
         pinpoint.setOffsets(-84.0, -168.0, DistanceUnit.MM);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.setEncoderDirections(
-                GoBildaPinpointDriver.EncoderDirection.FORWARD,
+                GoBildaPinpointDriver.EncoderDirection.REVERSED,
                 GoBildaPinpointDriver.EncoderDirection.FORWARD);
         pinpoint.resetPosAndIMU();
         sleep(300); // let the IMU finish calibrating before reading
