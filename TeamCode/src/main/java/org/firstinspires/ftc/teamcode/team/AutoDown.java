@@ -20,7 +20,9 @@ public class AutoDown extends LinearOpMode {
     private static final double TARGET_X_IN = 13.0;   // forward distance
     private static final double TARGET_Y_IN = 47.0;   // strafe distance (raw Pinpoint y, + = right)
 
-    private static final double HEADING_GAIN = 1.0;   // turn power per radian of heading error
+    // Heading hold. Flip HEADING_GAIN's sign if the robot spins faster instead of straightening out.
+    private static final double HEADING_GAIN = 0.5;           // turn power per radian of heading error
+    private static final double MAX_HEADING_ERROR_RAD = 0.8;  // ~45 deg: something is wrong, stop instead of spinning
     private static final double TOLERANCE_IN = 0.5;
     private static final double TIMEOUT_S = 28.0;
 
@@ -28,7 +30,8 @@ public class AutoDown extends LinearOpMode {
 
     private GoBildaPinpointDriver pinpoint;
     private Limelight3A limelight;
-    private double headingRad;   // latest Pinpoint heading, 0 = the way the robot started
+    private double headingErrorRad;   // current heading minus the heading at the start of the run
+    private double startHeadingRad;
     private final ElapsedTime runtime = new ElapsedTime();
 
     private DcMotor frontLeftDrive, backLeftDrive, frontRightDrive, backRightDrive;
@@ -62,16 +65,18 @@ public class AutoDown extends LinearOpMode {
         telemetry.update();
         waitForStart();
         runtime.reset();
+        pinpoint.update();
+        startHeadingRad = pinpoint.getPosition().getHeading(AngleUnit.RADIANS);
         AutoDown.State state = AutoDown.State.FIRST_FORWARD;
 
         while (opModeIsActive() && state != AutoDown.State.DONE) {
             pinpoint.update(); // required every loop or position never changes
             Pose2D pose = pinpoint.getPosition();
-            headingRad = pose.getHeading(AngleUnit.RADIANS);
+            headingErrorRad = pose.getHeading(AngleUnit.RADIANS) - startHeadingRad;
             double x = pose.getX(DistanceUnit.INCH);
             double y = pose.getY(DistanceUnit.INCH);  // raw Pinpoint: right reads positive, left negative
 
-            if (runtime.seconds() > TIMEOUT_S) {
+            if (runtime.seconds() > TIMEOUT_S || Math.abs(headingErrorRad) > MAX_HEADING_ERROR_RAD) {
                 state = AutoDown.State.DONE;
             }
 
@@ -101,16 +106,15 @@ public class AutoDown extends LinearOpMode {
             telemetry.addData("State", state);
             telemetry.addData("X (in)", "%.2f", x);
             telemetry.addData("Y (in)", "%.2f", y);
-            telemetry.addData("Heading (deg)", "%.1f", pose.getHeading(AngleUnit.DEGREES));
+            telemetry.addData("Heading error (deg)", "%.1f", Math.toDegrees(headingErrorRad));
             telemetry.update();
         }
         stopDrive();
         limelight.stop();
     }
-    /** forward > 0 drives forward, strafe > 0 strafes left (mecanum). Also steers to hold the starting heading. */
+    /** forward > 0 drives forward, strafe > 0 strafes left (mecanum), and the turn term holds the starting heading. */
     private void drive(double forward, double strafe) {
-        // Pinpoint heading is + counterclockwise, so a negative heading (drifting right) turns us back left.
-        double turn = -headingRad * HEADING_GAIN;
+        double turn = headingErrorRad * HEADING_GAIN;
         frontLeftDrive.setPower(forward + strafe - turn);
         backLeftDrive.setPower(forward - strafe - turn);
         frontRightDrive.setPower(forward - strafe + turn);
