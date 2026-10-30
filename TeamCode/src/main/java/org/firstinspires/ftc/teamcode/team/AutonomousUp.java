@@ -23,13 +23,14 @@ public class AutonomousUp extends LinearOpMode {
     private static final double TOLERANCE_IN = 0.5;
     private static final double TIMEOUT_S = 28.0;
 
-    private enum State { FIRST_FORWARD, SECOND_FORWARD, FIRST_STRAFE, SECOND_STRAFE, DONE }
+    private enum State {FIRST_FORWARD, SECOND_FORWARD, FIRST_STRAFE, SECOND_STRAFE, DONE}
 
     private GoBildaPinpointDriver pinpoint;
     private Limelight3A limelight;
     private final ElapsedTime runtime = new ElapsedTime();
 
     private DcMotor frontLeftDrive, backLeftDrive, frontRightDrive, backRightDrive;
+
     @Override
 
     public void runOpMode() throws InterruptedException {
@@ -74,7 +75,7 @@ public class AutonomousUp extends LinearOpMode {
 
             switch (state) {
                 case FIRST_FORWARD:
-                    if (x < (TARGET_X_IN - 55 ) - TOLERANCE_IN ) {
+                    if (x < (TARGET_X_IN - 55) - TOLERANCE_IN) {
                         drive(DRIVE_POWER, 0);
                     } else {
                         stopDrive();
@@ -91,7 +92,7 @@ public class AutonomousUp extends LinearOpMode {
                     }
                     break;
                 case SECOND_FORWARD:
-                    if (x < TARGET_X_IN - TOLERANCE_IN ) {
+                    if (x < TARGET_X_IN - TOLERANCE_IN) {
                         drive(DRIVE_POWER, 0);
                     } else {
                         stopDrive();
@@ -121,7 +122,10 @@ public class AutonomousUp extends LinearOpMode {
         stopDrive();
         limelight.stop();
     }
-    /** forward > 0 drives forward, strafe > 0 strafes left (mecanum). */
+
+    /**
+     * forward > 0 drives forward, strafe > 0 strafes left (mecanum).
+     */
     private void drive(double forward, double strafe) {
         frontLeftDrive.setPower(forward - strafe);
         backLeftDrive.setPower(forward + strafe);
@@ -132,6 +136,7 @@ public class AutonomousUp extends LinearOpMode {
     private void stopDrive() {
         drive(0, 0);
     }
+
     private void addLimelightTelemetry() {
         LLStatus status = limelight.getStatus();
         telemetry.addData("LL", "Temp: %.1fC, CPU: %.1f%%, FPS: %d",
