@@ -200,16 +200,6 @@ public class DriveMode extends LinearOpMode {
                 }
             }
 
-                //shooter controlled by right bumper, intake by a
-            if (gamepad2.right_bumper) {
-                shooter1.setPower(0.1);
-                shooter2.setPower(0.1);
-            } else {
-                shooter1.setPower(0.0);
-                shooter2.setPower(0.0);// Stop motor
-
-            }
-
             if (gamepad2.x && !lastX && powerShooter < 1.0) {
                 powerShooter += 0.01;
             }
@@ -223,7 +213,7 @@ public class DriveMode extends LinearOpMode {
                 }
             }
 
-            //shooter controled by right bunper, intake by a
+            // Shooters stay spun up at powerShooter (Y raises it, X lowers it) so they don't have to spool from zero
             shooter1.setPower(powerShooter);
             shooter2.setPower(powerShooter);
 
