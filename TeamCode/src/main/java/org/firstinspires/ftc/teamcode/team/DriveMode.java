@@ -98,7 +98,7 @@ public class DriveMode extends LinearOpMode {
         shooter2 = hardwareMap.get(DcMotor.class, "shooter2");
         intake = hardwareMap.get(DcMotor.class, "intake");
         windmill = hardwareMap.get(DcMotor.class, "windmill");
-        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        //pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -130,7 +130,7 @@ public class DriveMode extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            pinpoint.update();
+            //pinpoint.update();
 
             double max;
 
@@ -142,12 +142,12 @@ public class DriveMode extends LinearOpMode {
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
-            double frontLeftPower = axial + lateral + yaw;
-            double frontRightPower = axial - lateral - yaw;
-            double backLeftPower = axial - lateral + yaw;
-            double backRightPower = axial + lateral - yaw;
+            double frontLeftPower = axial + lateral - yaw;
+            double frontRightPower = axial - lateral + yaw;
+            double backLeftPower = axial - lateral - yaw;
+            double backRightPower = axial + lateral + yaw;
 
-            Pose2D currentPosition = pinpoint.getPosition();
+            //Pose2D currentPosition = pinpoint.getPosition();
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
@@ -245,9 +245,9 @@ public class DriveMode extends LinearOpMode {
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
             telemetry.addData("Current shotpower", "%4.2f", powerShooter);
-            telemetry.addData("current x position","%4.2f",currentPosition.getX(DistanceUnit.INCH));
-            telemetry.addData("current y position","%4.2f",currentPosition.getY(DistanceUnit.INCH));
-            telemetry.addData("current angles","%4.2f",currentPosition.getHeading(AngleUnit.DEGREES));
+            //telemetry.addData("current x position","%4.2f",currentPosition.getX(DistanceUnit.INCH));
+            //telemetry.addData("current y position","%4.2f",currentPosition.getY(DistanceUnit.INCH));
+            //telemetry.addData("current angles","%4.2f",currentPosition.getHeading(AngleUnit.DEGREES));
             telemetry.update();
         }
     }
