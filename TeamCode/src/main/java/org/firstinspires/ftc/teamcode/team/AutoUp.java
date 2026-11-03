@@ -30,6 +30,9 @@ public class AutoUp extends LinearOpMode {
 
     private enum State {FIRST_FORWARD, STRAFE, SECOND_FORWARD, DONE}
 
+    private DcMotor shooter1 = null;
+    private DcMotor shooter2 = null;
+
     private GoBildaPinpointDriver pinpoint;
     private Limelight3A limelight;
     private double headingErrorRad;   // current heading minus the heading at the start of the run
@@ -47,12 +50,16 @@ public class AutoUp extends LinearOpMode {
         frontRightDrive = hardwareMap.get(DcMotor.class, "frontRight");
         backLeftDrive = hardwareMap.get(DcMotor.class, "backLeft");
         backRightDrive = hardwareMap.get(DcMotor.class, "backRight");
+        shooter1 = hardwareMap.get(DcMotor.class, "shooter1");
+        shooter2 = hardwareMap.get(DcMotor.class, "shooter2");
 
         // Set once. Never flip directions mid-run; use power signs to strafe.
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        shooter1.setDirection(DcMotor.Direction.FORWARD);
+        shooter2.setDirection(DcMotor.Direction.REVERSE);
 
         for (DcMotor m : new DcMotor[]{frontLeftDrive, backLeftDrive, frontRightDrive, backRightDrive}) {
             m.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -67,6 +74,16 @@ public class AutoUp extends LinearOpMode {
         telemetry.addData(">", "Robot Ready.  Press Play.");
         telemetry.update();
         waitForStart();
+
+        if (opModeIsActive()) {
+            shooter1.setPower(0.5);
+            shooter2.setPower(0.5);
+
+            sleep(15000);
+
+            shooter1.setPower(0);
+            shooter2.setPower(0);
+        }
         runtime.reset();
         pinpoint.update();
         startHeadingRad = pinpoint.getPosition().getHeading(AngleUnit.RADIANS);
