@@ -30,6 +30,7 @@
 package org.firstinspires.ftc.teamcode.team;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -84,6 +85,7 @@ public class DriveMode extends LinearOpMode {
     private DcMotor intake = null;
     private DcMotor windmill = null;
     private GoBildaPinpointDriver pinpoint = null;
+    private Limelight3A limelight = null;
 
     @Override
     public void runOpMode() {
@@ -99,6 +101,7 @@ public class DriveMode extends LinearOpMode {
         intake = hardwareMap.get(DcMotor.class, "intake");
         windmill = hardwareMap.get(DcMotor.class, "windmill");
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -148,6 +151,8 @@ public class DriveMode extends LinearOpMode {
             double backRightPower = axial + lateral - yaw;
 
             Pose2D currentPosition = pinpoint.getPosition();
+
+
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
