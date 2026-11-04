@@ -38,10 +38,9 @@ public class AutoUp extends LinearOpMode {
     private double headingErrorRad;   // current heading minus the heading at the start of the run
     private double startHeadingRad;
     private final ElapsedTime runtime = new ElapsedTime();
-
     private DcMotor frontLeftDrive, backLeftDrive, frontRightDrive, backRightDrive;
-
     @Override
+
 
     public void runOpMode() throws InterruptedException {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -92,6 +91,18 @@ public class AutoUp extends LinearOpMode {
         while (opModeIsActive() && state != AutoUp.State.DONE) {
             pinpoint.update(); // required every loop or position never changes
             Pose2D pose = pinpoint.getPosition();
+            LLResult result = limelight.getLatestResult();
+            if (result != null && result.isValid()) {
+                double tx = result.getTx(); // How far left or right the target is (degrees)
+                double ty = result.getTy(); // How far up or down the target is (degrees)
+                double ta = result.getTa(); // How big the target looks (0%-100% of the image)
+
+                telemetry.addData("Target X", tx);
+                telemetry.addData("Target Y", ty);
+                telemetry.addData("Target Area", ta);
+            } else {
+                telemetry.addData("Limelight", "No Targets");
+            }
             headingErrorRad = pose.getHeading(AngleUnit.RADIANS) - startHeadingRad;
             double x = pose.getX(DistanceUnit.INCH);
             double y = pose.getY(DistanceUnit.INCH);
@@ -186,4 +197,5 @@ public class AutoUp extends LinearOpMode {
         pinpoint.resetPosAndIMU();
         sleep(300); // let the IMU finish calibrating before reading
     }
+
 }
