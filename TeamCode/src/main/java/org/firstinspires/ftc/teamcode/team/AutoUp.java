@@ -75,8 +75,8 @@ public class AutoUp extends LinearOpMode {
         waitForStart();
 
         if (opModeIsActive()) {
-            shooter1.setPower(0.5);
-            shooter2.setPower(0.5);
+            shooter1.setPower(0.7);
+            shooter2.setPower(0.7);
 
             sleep(15000);
 
