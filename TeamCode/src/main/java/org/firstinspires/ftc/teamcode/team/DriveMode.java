@@ -36,6 +36,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -80,8 +81,9 @@ public class DriveMode extends LinearOpMode {
     private DcMotor backLeftDrive = null;
     private DcMotor frontRightDrive = null;
     private DcMotor backRightDrive = null;
-    private DcMotor shooter1 = null;
-    private DcMotor shooter2 = null;
+    private DcMotorEx shooter1 = null;
+    private DcMotorEx shooter2 = null;
+    private ShooterFlywheel flywheel = null;
     private DcMotor intake = null;
     private DcMotor windmill = null;
     private GoBildaPinpointDriver pinpoint = null;
@@ -96,8 +98,8 @@ public class DriveMode extends LinearOpMode {
         frontRightDrive = hardwareMap.get(DcMotor.class, "frontRight");
         backLeftDrive = hardwareMap.get(DcMotor.class, "backLeft");
         backRightDrive = hardwareMap.get(DcMotor.class, "backRight");
-        shooter1 = hardwareMap.get(DcMotor.class, "shooter1");
-        shooter2 = hardwareMap.get(DcMotor.class, "shooter2");
+        shooter1 = hardwareMap.get(DcMotorEx.class, "shooter1");
+        shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
         intake = hardwareMap.get(DcMotor.class, "intake");
         windmill = hardwareMap.get(DcMotor.class, "windmill");
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
@@ -119,6 +121,8 @@ public class DriveMode extends LinearOpMode {
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
         shooter1.setDirection(DcMotor.Direction.FORWARD);
         shooter2.setDirection(DcMotor.Direction.REVERSE);
+        flywheel = new ShooterFlywheel(shooter1, shooter2);
+        flywheel.init();
         intake.setDirection(DcMotor.Direction.FORWARD);
         windmill.setDirection(DcMotor.Direction.FORWARD);
 
@@ -130,12 +134,25 @@ public class DriveMode extends LinearOpMode {
         runtime.reset();
 
         double powerShooter = 0.2;
+        int appliedPipeline = -1;
+        int appliedPollHz = -1;
+        limelight.start();
         boolean lastY = false;
         boolean lastX = false;
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             pinpoint.update();
+
+            // Live-tunable from FTC Dashboard (see TuningConfig).
+            if (TuningConfig.limelightPipeline != appliedPipeline) {
+                appliedPipeline = TuningConfig.limelightPipeline;
+                limelight.pipelineSwitch(appliedPipeline);
+            }
+            if (TuningConfig.limelightPollHz != appliedPollHz) {
+                appliedPollHz = TuningConfig.limelightPollHz;
+                limelight.setPollRateHz(Math.max(1, Math.min(250, appliedPollHz)));
+            }
 
             double max;
 
@@ -205,18 +222,20 @@ public class DriveMode extends LinearOpMode {
             // Shooters stay spun up at powerShooter (Y raises it, X lowers it) so they don't have to spool from zero
             // Emergency override: hold B on either gamepad to cut power to the flywheels.
             boolean flywheelStop = gamepad1.b || gamepad2.b;
-            shooter1.setPower(flywheelStop ? 0.0 : powerShooter);
-            shooter2.setPower(flywheelStop ? 0.0 : powerShooter);
+            double shotPower = TuningConfig.overrideShooterPower ? TuningConfig.shooterPower : powerShooter;
+            // Closed loop on the encoders: holds speed when the battery sags. Power 1.0 = shooterMaxTps.
+            flywheel.spinTo(flywheelStop ? 0.0 : shotPower * TuningConfig.shooterMaxTps);
+            boolean shooterReady = flywheel.isReady();
 
             if (gamepad2.a) {
-                intake.setPower(1.0);  // Full speed forward
+                intake.setPower(TuningConfig.intakePower);
             } else {
                 intake.setPower(0.0);  // Stop motor
             }
 
             //windmill controlled by left bumper
             if (gamepad2.left_bumper) {
-                windmill.setPower(1.0); // Spin at half speed (adjust as needed)
+                windmill.setPower(TuningConfig.windmillPower);
             } else {
                 windmill.setPower(0.0); // Stop spinning
             }
@@ -224,7 +243,10 @@ public class DriveMode extends LinearOpMode {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
-            telemetry.addData("Current shotpower", "%4.2f", powerShooter);
+            telemetry.addData("Current shotpower", "%4.2f", shotPower);
+            telemetry.addData("SHOOTER", shooterReady ? "READY" : (flywheel.getTarget() > 0 ? "spooling..." : "off"));
+            telemetry.addData("Shooter target/v1/v2 (tps)", "%4.0f / %4.0f / %4.0f",
+                    flywheel.getTarget(), flywheel.getVelocity1(), flywheel.getVelocity2());
             telemetry.addData("Flywheel E-STOP", flywheelStop ? "ACTIVE" : "off");
             telemetry.addData("current x position","%4.2f",currentPosition.getX(DistanceUnit.INCH));
             telemetry.addData("current y position","%4.2f",currentPosition.getY(DistanceUnit.INCH));

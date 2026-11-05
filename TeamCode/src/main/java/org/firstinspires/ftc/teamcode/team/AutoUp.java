@@ -7,6 +7,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -30,8 +31,9 @@ public class AutoUp extends LinearOpMode {
 
     private enum State {FIRST_FORWARD, STRAFE, SECOND_FORWARD, DONE}
 
-    private DcMotor shooter1 = null;
-    private DcMotor shooter2 = null;
+    private DcMotorEx shooter1 = null;
+    private DcMotorEx shooter2 = null;
+    private ShooterFlywheel flywheel = null;
 
     private GoBildaPinpointDriver pinpoint;
     private Limelight3A limelight;
@@ -49,8 +51,8 @@ public class AutoUp extends LinearOpMode {
         frontRightDrive = hardwareMap.get(DcMotor.class, "frontRight");
         backLeftDrive = hardwareMap.get(DcMotor.class, "backLeft");
         backRightDrive = hardwareMap.get(DcMotor.class, "backRight");
-        shooter1 = hardwareMap.get(DcMotor.class, "shooter1");
-        shooter2 = hardwareMap.get(DcMotor.class, "shooter2");
+        shooter1 = hardwareMap.get(DcMotorEx.class, "shooter1");
+        shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
 
         // Set once. Never flip directions mid-run; use power signs to strafe.
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -59,6 +61,8 @@ public class AutoUp extends LinearOpMode {
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
         shooter1.setDirection(DcMotor.Direction.FORWARD);
         shooter2.setDirection(DcMotor.Direction.FORWARD);
+        flywheel = new ShooterFlywheel(shooter1, shooter2);
+        flywheel.init();
 
         for (DcMotor m : new DcMotor[]{frontLeftDrive, backLeftDrive, frontRightDrive, backRightDrive}) {
             m.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -67,7 +71,8 @@ public class AutoUp extends LinearOpMode {
         configurePinpoint();
 
         telemetry.setMsTransmissionInterval(11);
-        limelight.pipelineSwitch(0);
+        limelight.pipelineSwitch(TuningConfig.limelightPipeline);
+        limelight.setPollRateHz(Math.max(1, Math.min(250, TuningConfig.limelightPollHz)));
         limelight.start();
 
         telemetry.addData(">", "Robot Ready.  Press Play.");
@@ -75,13 +80,22 @@ public class AutoUp extends LinearOpMode {
         waitForStart();
 
         if (opModeIsActive()) {
-            shooter1.setPower(0.7);
-            shooter2.setPower(0.7);
+            flywheel.spinTo(TuningConfig.autoShooterPower * TuningConfig.shooterMaxTps);
 
-            sleep(15000);
+            // Wait for the flywheels to reach speed (encoders), then hold for the shoot time.
+            ElapsedTime spool = new ElapsedTime();
+            while (opModeIsActive() && !flywheel.isReady() && spool.seconds() < TuningConfig.autoSpoolTimeoutS) {
+                flywheel.spinTo(TuningConfig.autoShooterPower * TuningConfig.shooterMaxTps);
+                telemetry.addData("Spooling", "%4.0f / %4.0f of %4.0f tps",
+                        flywheel.getVelocity1(), flywheel.getVelocity2(), flywheel.getTarget());
+                telemetry.update();
+            }
+            telemetry.addData("Shooter ready", flywheel.isReady());
+            telemetry.update();
 
-            shooter1.setPower(0);
-            shooter2.setPower(0);
+            sleep(TuningConfig.autoShooterMs);
+
+            flywheel.stop();
         }
         runtime.reset();
         pinpoint.update();
