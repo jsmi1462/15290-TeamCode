@@ -58,7 +58,7 @@ public class AutoUp extends LinearOpMode {
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
         shooter1.setDirection(DcMotor.Direction.FORWARD);
-        shooter2.setDirection(DcMotor.Direction.REVERSE);
+        shooter2.setDirection(DcMotor.Direction.FORWARD);
 
         for (DcMotor m : new DcMotor[]{frontLeftDrive, backLeftDrive, frontRightDrive, backRightDrive}) {
             m.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
