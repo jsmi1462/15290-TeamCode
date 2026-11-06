@@ -18,6 +18,8 @@ public class TuningConfig {
     public static int autoShooterMs = 15000;
 
     // ---- Flywheel speed control (uses the shooter encoders) ----
+    /** false = plain power control (Y/X taps scale motor power directly). true = encoder velocity control. Leave false until ShooterTuning shows both velocities positive and tracking. */
+    public static boolean useVelocityControl = false;
     /** Full-power speed in ticks/sec. Power 1.0 = this speed. Measure it: run ShooterTuning at shooterPower 1.0 and read the velocity. */
     public static double shooterMaxTps = 2000;
     /** Both flywheels must be within velocityToleranceTps of target for this long to count as ready. */

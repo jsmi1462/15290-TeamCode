@@ -76,7 +76,7 @@ public class SensorLimelight3A extends LinearOpMode {
     {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
-        telemetry.setMsTransmissionInterval(11);
+        telemetry.setMsTransmissionInterval(100);
 
         limelight.pipelineSwitch(0);
 
@@ -99,7 +99,7 @@ public class SensorLimelight3A extends LinearOpMode {
                     status.getPipelineIndex(), status.getPipelineType());
 
             LLResult result = limelight.getLatestResult();
-            if (result.isValid()) {
+            /*if (result.isValid()) {
                 // Access general information
                 Pose3D botpose = result.getBotpose();
                 double captureLatency = result.getCaptureLatency();
@@ -145,11 +145,11 @@ public class SensorLimelight3A extends LinearOpMode {
                 for (LLResultTypes.ColorResult cr : colorResults) {
                     telemetry.addData("Color", "X: %.2f, Y: %.2f", cr.getTargetXDegrees(), cr.getTargetYDegrees());
                 }
-            } else {
+            }*/
                 telemetry.addData("Limelight", "No data available");
-            }
 
             telemetry.update();
+
         }
         limelight.stop();
     }

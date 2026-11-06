@@ -27,13 +27,23 @@ public class ShooterFlywheel {
 
     /** Call once after setting directions. Does not reset the encoders. */
     public void init() {
-        m1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        m2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        // RUN_USING_ENCODER with no encoder plugged in makes the controller think speed is 0 and drive full power.
+        DcMotor.RunMode mode = TuningConfig.useVelocityControl
+                ? DcMotor.RunMode.RUN_USING_ENCODER : DcMotor.RunMode.RUN_WITHOUT_ENCODER;
+        m1.setMode(mode);
+        m2.setMode(mode);
     }
 
     /** Set the target speed in encoder ticks per second (0 stops). Call every loop; dashboard PIDF edits apply here. */
     public void spinTo(double ticksPerSec) {
         target = Math.max(0, ticksPerSec);
+        if (!TuningConfig.useVelocityControl) {
+            // Open loop: same behavior as before velocity control existed.
+            double power = TuningConfig.shooterMaxTps > 0 ? Math.min(1.0, target / TuningConfig.shooterMaxTps) : 0;
+            m1.setPower(power);
+            m2.setPower(power);
+            return;
+        }
         applyPidf();
         m1.setVelocity(target);
         m2.setVelocity(target);
@@ -57,6 +67,9 @@ public class ShooterFlywheel {
 
     /** True once both flywheels have held within tolerance of the target for TuningConfig.readyHoldMs. */
     public boolean isReady() {
+        if (!TuningConfig.useVelocityControl) {
+            return target > 0; // no encoder feedback in open loop, so "ready" just means "running"
+        }
         boolean now = target > 0
                 && Math.abs(m1.getVelocity() - target) <= TuningConfig.velocityToleranceTps
                 && Math.abs(m2.getVelocity() - target) <= TuningConfig.velocityToleranceTps;
