@@ -32,70 +32,54 @@ package org.firstinspires.ftc.teamcode.team;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 /*
- * This file contains an example of a Linear "OpMode".
- * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
- * The names of OpModes appear on the menu of the FTC Driver Station.
- * When a selection is made from the menu, the corresponding OpMode is executed.
+ * DRIVE MODE (the program the drivers run during teleop)
  *
- * This particular OpMode illustrates driving a 4-motor Omni-Directional (or Holonomic) robot.
- * This code will work with either a Mecanum-Drive or an X-Drive train.
- * Both of these drives are illustrated at https://gm0.org/en/latest/docs/robot-design/drivetrains/holonomic.html
- * Note that a Mecanum drive must display an X roller-pattern when viewed from above.
+ * CONTROLS
+ *   Driver 1:  left stick = drive and strafe, right stick = turn
+ *              left trigger / right trigger = turn the robot to a set angle
+ *              B = emergency stop for the shooter
+ *   Driver 2:  Y = shooter faster, X = shooter slower
+ *              A (hold) = intake, left bumper (hold) = windmill
+ *              B = emergency stop for the shooter
  *
- * Also note that it is critical to set the correct rotation direction for each motor.  See details below.
- *
- * Holonomic drives provide the ability for the robot to move in three axes (directions) simultaneously.
- * Each motion axis is controlled by one Joystick axis.
- *
- * 1) Axial:    Driving forward and backward               Left-joystick Forward/Backward
- * 2) Lateral:  Strafing right and left                     Left-joystick Right and Left
- * 3) Yaw:      Rotating Clockwise and counter clockwise    Right-joystick Right and Left
- *
- * This code is written assuming that the right-side motors need to be reversed for the robot to drive forward.
- * When you first test your robot, if it moves backward when you push the left stick forward, then you must flip
- * the direction of all 4 motors (see code below).
- *
- * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
+ * WANT TO CHANGE A NUMBER (power, angle, distance)?
+ *   Open TuningConfig.java. Every number has a comment that says what it does.
+ *   You can also change them live in FTC Dashboard while the robot is on.
  */
-
 @TeleOp(name="DriveMode", group="Linear OpMode")
 public class DriveMode extends LinearOpMode {
 
-    // Declare OpMode members for each of the 4 motors.
-    private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor frontLeftDrive = null;
-    private DcMotor backLeftDrive = null;
-    private DcMotor frontRightDrive = null;
-    private DcMotor backRightDrive = null;
-    private DcMotorEx shooter1 = null;
-    private DcMotorEx shooter2 = null;
-    private ShooterFlywheel flywheel = null;
-    private DcMotor intake = null;
-    private DcMotor windmill = null;
-    private GoBildaPinpointDriver pinpoint = null;
-    private Limelight3A limelight = null;
+    // ---- The robot's parts. The names in quotes below must match the Robot Configuration. ----
+    private DcMotor frontLeftDrive;
+    private DcMotor backLeftDrive;
+    private DcMotor frontRightDrive;
+    private DcMotor backRightDrive;
+    private DcMotorEx shooter1;
+    private DcMotorEx shooter2;
+    private ShooterFlywheel flywheel;   // runs both shooter motors at a steady speed using their encoders
+    private DcMotor intake;
+    private DcMotor windmill;
+    private GoBildaPinpointDriver pinpoint;  // tells us where the robot is and which way it faces
+    private Limelight3A limelight;
+    private DistanceSensor distBack;    // back-right corner of the robot, points at the back wall
+    private DistanceSensor distRight;   // back-right corner of the robot, points at the right wall
 
     @Override
     public void runOpMode() {
 
-        // Initialize the hardware variables. Note that the strings used here must correspond
-        // to the names assigned during the robot configuration step on the DS or RC devices.
+        // ================= STEP 1: connect to the robot's parts =================
         frontLeftDrive = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRightDrive = hardwareMap.get(DcMotor.class, "frontRight");
         backLeftDrive = hardwareMap.get(DcMotor.class, "backLeft");
@@ -106,172 +90,157 @@ public class DriveMode extends LinearOpMode {
         windmill = hardwareMap.get(DcMotor.class, "windmill");
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        // tryGet = if a sensor is missing, skip the corner reset instead of crashing.
+        distBack = hardwareMap.tryGet(DistanceSensor.class, "distBack");
+        distRight = hardwareMap.tryGet(DistanceSensor.class, "distRight");
 
-        // ########################################################################################
-        // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
-        // ########################################################################################
-        // Most robots need the motors on one side to be reversed to drive forward.
-        // The motor reversals shown here are for a "direct drive" robot (the wheels turn the same direction as the motor shaft)
-        // If your robot has additional gear reductions or uses a right-angled drive, it's important to ensure
-        // that your motors are turning in the correct direction.  So, start out with the reversals here, BUT
-        // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
-        // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
-        // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
+        // ================= STEP 2: set which way each motor spins =================
+        // If the robot drives backward when you push the stick forward, flip FORWARD and REVERSE here.
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
         shooter1.setDirection(DcMotor.Direction.FORWARD);
         shooter2.setDirection(DcMotor.Direction.REVERSE);
-        flywheel = new ShooterFlywheel(shooter1, shooter2);
-        flywheel.init();
         intake.setDirection(DcMotor.Direction.FORWARD);
         windmill.setDirection(DcMotor.Direction.FORWARD);
 
-        // Wait for the game to start (driver presses START)
-        telemetry.addData("Status", "Initialized");
+        flywheel = new ShooterFlywheel(shooter1, shooter2);
+        flywheel.init();
+
+        telemetry.addData("Status", "Initialized. Press START.");
         telemetry.update();
-
         waitForStart();
-        runtime.reset();
 
-        double powerShooter = 0.2;
-        int appliedPipeline = -1;
-        int appliedPollHz = -1;
+        // ================= STEP 3: things we remember between loops =================
+        double shooterPower = 0.2;          // 0.2 = 20% speed. Driver 2 raises or lowers it.
+        boolean yWasPressed = false;        // lets us count one tap as one step, not a held button
+        boolean xWasPressed = false;
+        ElapsedTime cornerTimer = new ElapsedTime();   // how long we have been sitting in the corner
+        boolean cornerDone = false;         // true once the position was reset for this visit
+        int pipelineInUse = -1;             // the Limelight pipeline we last switched to
+        int pollRateInUse = -1;             // the Limelight update rate we last set
         limelight.start();
-        boolean lastY = false;
-        boolean lastX = false;
 
-        // run until the end of the match (driver presses STOP)
+        // ================= STEP 4: the loop. Everything below repeats until STOP. =================
         while (opModeIsActive()) {
-            pinpoint.update();
-            LLResult result = limelight.getLatestResult();
-            if (result.isValid()) {
-                // Access general information
-                Pose3D botpose = result.getBotpose();
-                double captureLatency = result.getCaptureLatency();
-                double targetingLatency = result.getTargetingLatency();
-                double parseLatency = result.getParseLatency();
-                telemetry.addData("LL Latency", captureLatency + targetingLatency);
-                telemetry.addData("Parse Latency", parseLatency);
-                telemetry.addData("PythonOutput", java.util.Arrays.toString(result.getPythonOutput()));
 
-                telemetry.addData("tx", result.getTx());
-                telemetry.addData("txnc", result.getTxNC());
-                telemetry.addData("ty", result.getTy());
-                telemetry.addData("tync", result.getTyNC());
+            pinpoint.update();   // get a fresh position and angle
+            double heading = pinpoint.getPosition().getHeading(AngleUnit.DEGREES);
 
-                telemetry.addData("Botpose", botpose.toString());
-                // Live-tunable from FTC Dashboard (see TuningConfig).
-                if (TuningConfig.limelightPipeline != appliedPipeline) {
-                    appliedPipeline = TuningConfig.limelightPipeline;
-                    limelight.pipelineSwitch(appliedPipeline);
-                }
-                if (TuningConfig.limelightPollHz != appliedPollHz) {
-                    appliedPollHz = TuningConfig.limelightPollHz;
-                    limelight.setPollRateHz(Math.max(1, Math.min(250, appliedPollHz)));
-                }
+            // ---------- DRIVING ----------
+            double forward = -gamepad1.left_stick_y;   // stick forward is negative, so flip it
+            double strafe = gamepad1.left_stick_x;     // sideways
+            double turn = -gamepad1.right_stick_x;     // flipped because this robot turns the other way
 
-                double max;
-
-                // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-                double axial = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-                double lateral = gamepad1.left_stick_x;
-                double yaw = -gamepad1.right_stick_x;  // negated: this robot turns the opposite way from the textbook mapping
-
-
-                // Combine the joystick requests for each axis-motion to determine each wheel's power.
-                // Set up a variable for each drive wheel to save the power level for telemetry.
-                double frontLeftPower = axial + lateral + yaw;
-                double frontRightPower = axial - lateral - yaw;
-                double backLeftPower = axial - lateral + yaw;
-                double backRightPower = axial + lateral - yaw;
-
-                Pose2D currentPosition = pinpoint.getPosition();
-
-
-                // Normalize the values so no wheel power exceeds 100%
-                // This ensures that the robot maintains the desired motion.
-                max = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
-                max = Math.max(max, Math.abs(backLeftPower));
-                max = Math.max(max, Math.abs(backRightPower));
-
-                if (max > 1.0) {
-                    frontLeftPower /= max;
-                    frontRightPower /= max;
-                    backLeftPower /= max;
-                    backRightPower /= max;
-                }
-
-                // This is test code:
-                //
-                // Uncomment the following code to test your motor directions.
-                // Each button should make the corresponding motor run FORWARD.
-                //   1) First get all the motors to take to correct positions on the robot
-                //      by adjusting your Robot Configuration if necessary.
-                //   2) Then make sure they run in the correct direction by modifying the
-                //      the setDirection() calls above.
-                // Once the correct motors move in the correct direction re-comment this code.
-
-            /*
-            frontLeftPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
-            backLeftPower   = gamepad1.a ? 1.0 : 0.0;  // A gamepad
-            frontRightPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
-            backRightPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
-            */
-
-                // Send calculated power to wheels
-                frontLeftDrive.setPower(frontLeftPower);
-                frontRightDrive.setPower(frontRightPower);
-                backLeftDrive.setPower(backLeftPower);
-                backRightDrive.setPower(backRightPower);
-
-                // One tap = one 0.1 step. Only the moment the button goes down counts, not how long it is held.
-                if (gamepad2.y && !lastY) {
-                    powerShooter = Math.min(1.0, Math.round((powerShooter + 0.1) * 10) / 10.0);
-                }
-                if (gamepad2.x && !lastX) {
-                    powerShooter = Math.max(0.2, Math.round((powerShooter - 0.1) * 10) / 10.0);
-                }
-                lastY = gamepad2.y;
-                lastX = gamepad2.x;
-
-                // Shooters stay spun up at powerShooter (Y raises it, X lowers it) so they don't have to spool from zero
-                // Emergency override: hold B on either gamepad to cut power to the flywheels.
-                boolean flywheelStop = gamepad1.b || gamepad2.b;
-                double shotPower = TuningConfig.overrideShooterPower ? TuningConfig.shooterPower : powerShooter;
-                // Closed loop on the encoders: holds speed when the battery sags. Power 1.0 = shooterMaxTps.
-                flywheel.spinTo(flywheelStop ? 0.0 : shotPower * TuningConfig.shooterMaxTps);
-                boolean shooterReady = flywheel.isReady();
-
-                if (gamepad2.a) {
-                    intake.setPower(TuningConfig.intakePower);
+            // ---------- SNAP TURN: hold a trigger and the robot turns to a set angle ----------
+            boolean snapping = gamepad1.left_trigger > 0.5 || gamepad1.right_trigger > 0.5;
+            double snapAngle = gamepad1.left_trigger > 0.5 ? TuningConfig.snapLeftDeg : TuningConfig.snapRightDeg;
+            if (snapping) {
+                // How far off are we? (angle we want) minus (angle we have), wrapped to -180..180.
+                double angleError = AngleUnit.normalizeDegrees(snapAngle - heading);
+                if (Math.abs(angleError) < TuningConfig.snapDoneDeg) {
+                    turn = 0;   // close enough, stop turning
                 } else {
-                    intake.setPower(0.0);  // Stop motor
+                    // Turn faster when far away, slower when close. Never faster than the max.
+                    turn = TuningConfig.snapYawSign * TuningConfig.snapKp * angleError;
+                    turn = Math.max(-TuningConfig.snapMaxPower, Math.min(TuningConfig.snapMaxPower, turn));
                 }
-
-                //windmill controlled by left bumper
-                if (gamepad2.left_bumper) {
-                    windmill.setPower(TuningConfig.windmillPower);
-                } else {
-                    windmill.setPower(0.0); // Stop spinning
-                }
-                // Show the elapsed game time and wheel power.
-                telemetry.addData("Status", "Run Time: " + runtime.toString());
-                telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
-                telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
-                telemetry.addData("Current shotpower", "%4.2f", shotPower);
-                telemetry.addData("SHOOTER", shooterReady ? "READY" : (flywheel.getTarget() > 0 ? "spooling..." : "off"));
-                telemetry.addData("Shooter target/v1/v2 (tps)", "%4.0f / %4.0f / %4.0f",
-                        flywheel.getTarget(), flywheel.getVelocity1(), flywheel.getVelocity2());
-                telemetry.addData("Flywheel E-STOP", flywheelStop ? "ACTIVE" : "off");
-                telemetry.addData("current x position", "%4.2f", currentPosition.getX(DistanceUnit.INCH));
-                telemetry.addData("current y position", "%4.2f", currentPosition.getY(DistanceUnit.INCH));
-                telemetry.addData("current angles", "%4.2f", currentPosition.getHeading(AngleUnit.DEGREES));
-                telemetry.update();
             }
+
+            // Mix the three movements into a power for each wheel.
+            double frontLeftPower = forward + strafe + turn;
+            double frontRightPower = forward - strafe - turn;
+            double backLeftPower = forward - strafe + turn;
+            double backRightPower = forward + strafe - turn;
+
+            // Motors cannot go above 1.0. If any wheel is over, shrink all four by the same amount.
+            double biggest = Math.max(Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower)),
+                    Math.max(Math.abs(backLeftPower), Math.abs(backRightPower)));
+            if (biggest > 1.0) {
+                frontLeftPower /= biggest;
+                frontRightPower /= biggest;
+                backLeftPower /= biggest;
+                backRightPower /= biggest;
+            }
+
+            frontLeftDrive.setPower(frontLeftPower);
+            frontRightDrive.setPower(frontRightPower);
+            backLeftDrive.setPower(backLeftPower);
+            backRightDrive.setPower(backRightPower);
+
+            // ---------- SHOOTER ----------
+            // One tap of Y or X changes the speed by 0.1.
+            if (gamepad2.y && !yWasPressed) {
+                shooterPower = Math.min(1.0, Math.round((shooterPower + 0.1) * 10) / 10.0);
+            }
+            if (gamepad2.x && !xWasPressed) {
+                shooterPower = Math.max(0.2, Math.round((shooterPower - 0.1) * 10) / 10.0);
+            }
+            yWasPressed = gamepad2.y;
+            xWasPressed = gamepad2.x;
+
+            boolean shooterStop = gamepad1.b || gamepad2.b;   // emergency stop
+            double shooterSetting = TuningConfig.overrideShooterPower ? TuningConfig.shooterPower : shooterPower;
+            // The shooter holds a steady SPEED using its encoders. 1.0 means full speed (shooterMaxTps).
+            flywheel.spinTo(shooterStop ? 0.0 : shooterSetting * TuningConfig.shooterMaxTps);
+
+            // ---------- INTAKE and WINDMILL ----------
+            intake.setPower(gamepad2.a ? TuningConfig.intakePower : 0.0);
+            windmill.setPower(gamepad2.left_bumper ? TuningConfig.windmillPower : 0.0);
+
+            // ---------- CORNER RESET ----------
+            // In the corner, both distance sensors read the same known number. When that is true for a
+            // moment, we KNOW exactly where the robot is, so we tell the Pinpoint.
+            String cornerStatus = "sensors not found";
+            if (distBack != null && distRight != null) {
+                double backInches = distBack.getDistance(DistanceUnit.INCH);
+                double rightInches = distRight.getDistance(DistanceUnit.INCH);
+                boolean inCorner = Math.abs(backInches - TuningConfig.cornerN) <= TuningConfig.cornerTolIn
+                        && Math.abs(rightInches - TuningConfig.cornerN) <= TuningConfig.cornerTolIn;
+
+                if (!inCorner) {
+                    cornerTimer.reset();   // not in the corner: restart the wait
+                    cornerDone = false;    // and allow a new reset next time we arrive
+                    cornerStatus = "not in corner";
+                } else if (!cornerDone && TuningConfig.cornerResetEnabled
+                        && cornerTimer.milliseconds() >= TuningConfig.cornerHoldMs) {
+                    pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, TuningConfig.cornerX,
+                            TuningConfig.cornerY, AngleUnit.DEGREES, TuningConfig.cornerHeadingDeg));
+                    cornerDone = true;
+                }
+                if (inCorner) {
+                    cornerStatus = cornerDone ? "RESET DONE" : "hold still...";
+                }
+                telemetry.addData("Distance back / right (in)", "%.1f / %.1f", backInches, rightInches);
+            }
+
+            // ---------- LIMELIGHT (settings come from TuningConfig) ----------
+            if (TuningConfig.limelightPipeline != pipelineInUse) {
+                pipelineInUse = TuningConfig.limelightPipeline;
+                limelight.pipelineSwitch(pipelineInUse);
+            }
+            if (TuningConfig.limelightPollHz != pollRateInUse) {
+                pollRateInUse = TuningConfig.limelightPollHz;
+                limelight.setPollRateHz(Math.max(1, Math.min(250, pollRateInUse)));
+            }
+            LLResult camera = limelight.getLatestResult();
+            boolean seesTarget = camera != null && camera.isValid();
+
+            // ---------- WHAT THE DRIVERS SEE ----------
+            Pose2D position = pinpoint.getPosition();
+            telemetry.addData("Shooter", shooterStop ? "E-STOP" : (flywheel.isReady() ? "READY" : "spooling..."));
+            telemetry.addData("Shooter setting", "%.1f", shooterSetting);
+            telemetry.addData("Shooter speed target / actual", "%.0f / %.0f", flywheel.getTarget(), flywheel.getVelocity1());
+            telemetry.addData("Position x / y (in)", "%.1f / %.1f",
+                    position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH));
+            telemetry.addData("Angle (deg)", "%.1f", heading);
+            telemetry.addData("Corner reset", cornerStatus);
+            telemetry.addData("Snap turn", snapping ? "going to " + snapAngle : "off");
+            telemetry.addData("Limelight sees target", seesTarget);
+            telemetry.update();
         }
+
+        flywheel.stop();
     }
 }
-
-
