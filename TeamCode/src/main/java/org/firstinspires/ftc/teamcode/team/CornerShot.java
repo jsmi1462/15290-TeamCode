@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -113,7 +114,27 @@ public class CornerShot {
             cornerTimer.reset();   // bumped out of the corner: start waiting again
         }
         opMode.telemetry.addData("Distance back / right (in)", "%.1f / %.1f", back, right);
-        return closeNow && cornerTimer.milliseconds() >= TuningConfig.cornerHoldMs;
+        boolean inCorner = closeNow && cornerTimer.milliseconds() >= TuningConfig.cornerHoldMs;
+
+        // Tell the driver without the Driver Station: the controller buzzes and the light bar is green the
+        // WHOLE time we are in the corner, and stops / goes back to blue when we leave. We only send the command
+        // when the answer CHANGES; the controller keeps buzzing on its own until we tell it to stop.
+        if (inCorner && !wasInCorner) {
+            opMode.gamepad1.rumble(Gamepad.RUMBLE_DURATION_CONTINUOUS);
+            opMode.gamepad1.setLedColor(0, 1, 0, Gamepad.LED_DURATION_CONTINUOUS);
+        } else if (!inCorner && wasInCorner) {
+            stopCornerSignal();
+        }
+        wasInCorner = inCorner;
+        return inCorner;
+    }
+
+    private boolean wasInCorner = false;
+
+    private void stopCornerSignal() {
+        opMode.gamepad1.stopRumble();
+        opMode.gamepad1.setLedColor(0, 0, 1, Gamepad.LED_DURATION_CONTINUOUS);
+        wasInCorner = false;
     }
 
     // =====================================================================
@@ -124,6 +145,8 @@ public class CornerShot {
         // still for about 0.25 s while the IMU recalibrates.
         pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0));
         pinpoint.update();
+        stopCornerSignal();               // we're about to drive away, so stop the in-corner buzz
+        opMode.gamepad1.rumbleBlips(2);   // double buzz = "position reset, here we go"
     }
 
     // =====================================================================
@@ -266,6 +289,7 @@ public class CornerShot {
     }
 
     public void stop() {
+        stopCornerSignal();
         stopAll();
     }
 

@@ -19,9 +19,9 @@ public class TuningConfig {
 
     // ---- Flywheel speed control (uses the shooter encoders) ----
     /** true = the shooter uses its encoders to hold a steady speed (normal). false = plain motor power, only if an encoder cable is broken. */
-    // OFF for now (2026-11-11): shooter1's encoder reads NEGATIVE while spinning forward (480 target / -2540 actual),
-    // so speed control runs away to full power. Turn back on once the encoder wiring is fixed.
-    public static boolean useVelocityControl = false;
+    // If this ever runs away to full power again, check that both shooter velocities read POSITIVE in Shooter Tuning.
+    // (2026-11-11: they read negative because the two shooter encoder cables were swapped at the hub.)
+    public static boolean useVelocityControl = true;
     /** With speed control off there is no speed reading, so "ready" just waits this long after the flywheel starts. */
     public static double openLoopSpinUpMs = 1500;
     /** The speed (ticks/sec) that a shooter setting of 1.0 asks for. The Y/X taps pick a setting from 0.2 to 1.0, and speed = setting x this number.
