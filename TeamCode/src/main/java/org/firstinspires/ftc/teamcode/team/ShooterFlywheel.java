@@ -19,6 +19,7 @@ public class ShooterFlywheel {
     private boolean wasInBand = false;
     private double appliedP = Double.NaN, appliedI, appliedD, appliedF;
     private boolean appliedCustom = false;
+    private Boolean appliedMode = null;   // the useVelocityControl value the motors are currently set up for
 
     public ShooterFlywheel(DcMotorEx m1, DcMotorEx m2) {
         this.m1 = m1;
@@ -27,15 +28,27 @@ public class ShooterFlywheel {
 
     /** Call once after setting directions. Does not reset the encoders. */
     public void init() {
-        // RUN_USING_ENCODER with no encoder plugged in makes the controller think speed is 0 and drive full power.
-        DcMotor.RunMode mode = TuningConfig.useVelocityControl
-                ? DcMotor.RunMode.RUN_USING_ENCODER : DcMotor.RunMode.RUN_WITHOUT_ENCODER;
+        applyMode();
+    }
+
+    /**
+     * Put the motors in the mode TuningConfig.useVelocityControl asks for. Runs every loop, so flipping the
+     * setting in FTC Dashboard takes effect right away (setVelocity is ignored in RUN_WITHOUT_ENCODER).
+     * RUN_USING_ENCODER with no encoder plugged in makes the controller think speed is 0 and drive full power.
+     */
+    private void applyMode() {
+        if (appliedMode != null && appliedMode == TuningConfig.useVelocityControl) {
+            return;
+        }
+        appliedMode = TuningConfig.useVelocityControl;
+        DcMotor.RunMode mode = appliedMode ? DcMotor.RunMode.RUN_USING_ENCODER : DcMotor.RunMode.RUN_WITHOUT_ENCODER;
         m1.setMode(mode);
         m2.setMode(mode);
     }
 
-    /** Set the target speed in encoder ticks per second (0 stops). Call every loop; dashboard PIDF edits apply here. */
+    /** Set the target speed in encoder ticks per second (0 stops). Call every loop; dashboard edits apply here. */
     public void spinTo(double ticksPerSec) {
+        applyMode();
         target = Math.max(0, ticksPerSec);
         if (!TuningConfig.useVelocityControl) {
             // Open loop: same behavior as before velocity control existed.

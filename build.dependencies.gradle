@@ -17,7 +17,10 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
 
     implementation 'com.pedropathing:revhub:3.0.1'
-    implementation 'com.pedropathing:tuning:1.0.1'
+    // Pedro's tuning library was removed 2026-11-11: it brings in Sloth, which runs TeamCode from a separate
+    // class loader so FTC Dashboard @Config edits never reached the OpModes. To tune Pedro again, restore this
+    // line and pedro/Tuning.java + pedro/procedures/ from git (commit dac6325), and expect Dashboard config to stop working.
+    // implementation 'com.pedropathing:tuning:1.0.1'
 
     implementation 'com.acmerobotics.dashboard:dashboard:0.6.0'
 }
