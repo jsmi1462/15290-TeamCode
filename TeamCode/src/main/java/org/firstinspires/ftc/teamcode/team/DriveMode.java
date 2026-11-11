@@ -49,9 +49,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
  * CONTROLS
  *   Driver 1:  left stick = drive and strafe, right stick = turn
  *              left trigger / right trigger = turn the robot to a set angle
+ *              Y = shooter faster, X = shooter slower
  *              B = emergency stop for the shooter
- *   Driver 2:  Y = shooter faster, X = shooter slower
- *              A (hold) = intake, left bumper (hold) = windmill
+ *   Driver 2:  A (hold) = intake, left bumper (hold) = windmill
  *              B = emergency stop for the shooter
  *
  * WANT TO CHANGE A NUMBER (power, angle, distance)?
@@ -113,7 +113,7 @@ public class DriveMode extends LinearOpMode {
         waitForStart();
 
         // ================= STEP 3: things we remember between loops =================
-        double shooterPower = 0.2;          // 0.2 = 20% speed. Driver 2 raises or lowers it.
+        double shooterPower = 0.2;          // 0.2 = 20% speed. Driver 1 raises or lowers it.
         boolean yWasPressed = false;        // lets us count one tap as one step, not a held button
         boolean xWasPressed = false;
         ElapsedTime cornerTimer = new ElapsedTime();   // how long we have been sitting in the corner
@@ -170,15 +170,15 @@ public class DriveMode extends LinearOpMode {
             backRightDrive.setPower(backRightPower);
 
             // ---------- SHOOTER ----------
-            // One tap of Y or X changes the speed by 0.1.
-            if (gamepad2.y && !yWasPressed) {
+            // One tap of Y or X (driver 1) changes the speed by 0.1.
+            if (gamepad1.y && !yWasPressed) {
                 shooterPower = Math.min(1.0, Math.round((shooterPower + 0.1) * 10) / 10.0);
             }
-            if (gamepad2.x && !xWasPressed) {
+            if (gamepad1.x && !xWasPressed) {
                 shooterPower = Math.max(0.2, Math.round((shooterPower - 0.1) * 10) / 10.0);
             }
-            yWasPressed = gamepad2.y;
-            xWasPressed = gamepad2.x;
+            yWasPressed = gamepad1.y;
+            xWasPressed = gamepad1.x;
 
             boolean shooterStop = gamepad1.b || gamepad2.b;   // emergency stop
             double shooterSetting = TuningConfig.overrideShooterPower ? TuningConfig.shooterPower : shooterPower;

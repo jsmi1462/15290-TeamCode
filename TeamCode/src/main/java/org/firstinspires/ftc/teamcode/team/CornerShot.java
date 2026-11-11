@@ -40,9 +40,9 @@ public class CornerShot {
     // ---- The shooting spot, measured from the corner. Change these live in FTC Dashboard. ----
     // How to measure: in CornerShotTeleOp, back into the corner until telemetry says "RESET DONE",
     // drive by hand to the best shooting spot, and copy the three "from corner" numbers here.
-    public static double shotForwardIn = 0;    // inches forward from the corner
-    public static double shotLeftIn = 0;       // inches LEFT from the corner (negative = right)
-    public static double shotHeadingDeg = 0;   // the angle to face when shooting (Pinpoint degrees)
+    public static double shotForwardIn = 10.05;  // inches forward from the corner (measured 2026-11-11, right side)
+    public static double shotLeftIn = 2.74;      // inches LEFT from the corner (negative = right)
+    public static double shotHeadingDeg = 53.91; // the angle to face when shooting (Pinpoint degrees)
 
     // ---- How it drives ----
     public static double fastPower = 0.8;      // drive power for most of the trip
@@ -51,11 +51,11 @@ public class CornerShot {
     public static double toleranceIn = 0.5;    // "close enough" for driving
     public static double headingKp = 0.03;     // turn power per degree of error (same idea as snap turn)
     public static double maxTurnPower = 0.5;
-    public static double toleranceDeg = 1.5;   // "close enough" for turning
+    public static double toleranceDeg = 2.0;   // "close enough" for turning
     public static double moveTimeoutS = 5;     // give up on one step if it takes longer than this
 
     // ---- How it shoots ----
-    public static double shooterSetting = 0.7; // 0 to 1, same scale as the Y/X shooter setting in DriveMode
+    public static double shooterSetting = 0.5; // 0 to 1, same scale as the Y/X shooter setting in DriveMode (0.5 = about 1220 tps)
     public static double feedMs = 3000;        // how long to run the intake and windmill to feed balls
 
     private final LinearOpMode opMode;
