@@ -73,20 +73,45 @@ public class CornerShotSketch extends LinearOpMode {
             double right = distRight.getDistance(DistanceUnit.INCH);
             boolean inCorner = false;   // TODO: true when BOTH back and right are within CORNER_TOL_IN of CORNER_IN
 
+            if (back <= (CORNER_IN + CORNER_TOL_IN) && (right <= (CORNER_IN + CORNER_TOL_IN) ) )
+            {
+                inCorner = true;
+                // add rumble to the controller
+            }
+
+            if (inCorner)
+            {
+                frontLeft.setPower(0.0);
+                backLeft.setPower(0.0);
+                frontRight.setPower(0.0);
+                backRight.setPower(0.0);
+            }
+
             if (inCorner && gamepad1.x) {
 
                 // ---------- 2. RESET ----------
                 // TODO: set the Pinpoint to x=0, y=0, heading=0.
                 //       Look for pinpoint.setPosition(new Pose2D(...)) or pinpoint.resetPosAndIMU().
 
+                pinpoint.resetPosAndIMU();
+
                 // ---------- 3. DRIVE (start, drive, check, stop) ----------
                 double startX = 0;      // TODO: START: read where we are right now
                 double startY = 0;      // TODO
                 double traveled = 0;
+                double newX = distBack.getDistance(DistanceUnit.INCH);
+                double newY = distRight.getDistance(DistanceUnit.INCH);
+
                 while (opModeIsActive() && traveled < SHOT_FORWARD_IN) {
                     pinpoint.update();
                     // TODO: CHECK: traveled = Math.hypot(x now - startX, y now - startY)
+
+                    traveled = Math.hypot(newX - startX, newY - startY);
+
                     // TODO: DRIVE: all four wheels forward. Why might 0.8 overshoot? What could you do near the end?
+
+
+
                     break; // TODO: delete this line once the loop can finish on its own
                 }
                 // TODO: STOP: all four wheels to 0
