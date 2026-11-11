@@ -71,7 +71,8 @@ public class CornerShotSketch extends LinearOpMode {
             // ---------- 1. CORNER? ----------
             double back = distBack.getDistance(DistanceUnit.INCH);
             double right = distRight.getDistance(DistanceUnit.INCH);
-            boolean inCorner = false;   // TODO: true when BOTH back and right are within CORNER_TOL_IN of CORNER_IN
+            boolean inCorner = false;// TODO: true when BOTH back and right are within CORNER_TOL_IN of CORNER_IN
+
 
             if (inCorner && gamepad1.x) {
 
