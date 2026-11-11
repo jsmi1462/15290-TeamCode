@@ -19,7 +19,11 @@ public class TuningConfig {
 
     // ---- Flywheel speed control (uses the shooter encoders) ----
     /** true = the shooter uses its encoders to hold a steady speed (normal). false = plain motor power, only if an encoder cable is broken. */
-    public static boolean useVelocityControl = true;
+    // OFF for now (2026-11-11): shooter1's encoder reads NEGATIVE while spinning forward (480 target / -2540 actual),
+    // so speed control runs away to full power. Turn back on once the encoder wiring is fixed.
+    public static boolean useVelocityControl = false;
+    /** With speed control off there is no speed reading, so "ready" just waits this long after the flywheel starts. */
+    public static double openLoopSpinUpMs = 1500;
     /** The speed (ticks/sec) that a shooter setting of 1.0 asks for. The Y/X taps pick a setting from 0.2 to 1.0, and speed = setting x this number.
      *  The goBILDA 5203 (6000 RPM, 28 ticks per rev) spins freely at 2800, but it cannot hold that under load,
      *  so this is set lower (about 85%) so every setting is reachable. Check it: run ShooterTuning at shooterPower 1.0

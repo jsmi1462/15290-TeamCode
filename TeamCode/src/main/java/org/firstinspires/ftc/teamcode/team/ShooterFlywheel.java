@@ -68,7 +68,12 @@ public class ShooterFlywheel {
     /** True once both flywheels have held within tolerance of the target for TuningConfig.readyHoldMs. */
     public boolean isReady() {
         if (!TuningConfig.useVelocityControl) {
-            return target > 0; // no encoder feedback in open loop, so "ready" just means "running"
+            // No speed reading in open loop, so "ready" means "has been running for a moment".
+            if (target > 0 && !wasInBand) {
+                inBand.reset();
+            }
+            wasInBand = target > 0;
+            return target > 0 && inBand.milliseconds() >= TuningConfig.openLoopSpinUpMs;
         }
         boolean now = target > 0
                 && Math.abs(m1.getVelocity() - target) <= TuningConfig.velocityToleranceTps

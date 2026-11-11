@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
  * Stationary shooter tuning. No driving. Open FTC Dashboard, change TuningConfig values, and watch the graphs.
  * A (gamepad2) runs the intake, left bumper runs the windmill, B on either gamepad stops the flywheels.
  */
-@TeleOp(name = "ShooterTuning", group = "Tuning")
+@TeleOp(name = "Shooter Tuning", group = "Test")
 public class ShooterTuning extends LinearOpMode {
     @Override
     public void runOpMode() {
