@@ -56,7 +56,7 @@ public class CornerShot {
     public static double moveTimeoutS = 5;     // give up on one step if it takes longer than this
 
     // ---- How it shoots ----
-    public static double shooterSetting = 0.6; // 0 to 1, same scale as the Y/X shooter setting in DriveMode (0.5 = about 1220 tps)
+    public static double shooterSetting = 0.5; // 0 to 1, same scale as the Y/X shooter setting in DriveMode (0.5 = about 1220 tps)
     public static double feedMs = 3000;        // how long to run the intake and windmill to feed balls
 
     private final LinearOpMode opMode;
