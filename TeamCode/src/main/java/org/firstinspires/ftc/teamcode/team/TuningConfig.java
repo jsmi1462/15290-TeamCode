@@ -52,7 +52,7 @@ public class TuningConfig {
     // ---- Corner reset (two distance sensors on the back-right corner: one faces back, one faces right) ----
     public static boolean cornerResetEnabled = true;
     /** Both sensors must read this (inches) to count as "in the corner". */
-    public static double cornerN = 2.0;
+    public static double cornerN = 3.0;
     /** How close to cornerN each reading must be (inches). */
     public static double cornerTolIn = 0.75;
     /** Readings must stay in range this long before the reset fires. */
