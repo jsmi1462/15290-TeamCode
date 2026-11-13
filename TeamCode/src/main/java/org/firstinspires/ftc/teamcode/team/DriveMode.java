@@ -139,6 +139,30 @@ public class DriveMode extends LinearOpMode {
             pinpoint.update();   // get a fresh position and angle
             double heading = pinpoint.getPosition().getHeading(AngleUnit.DEGREES);
 
+            DcMotor frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
+            DcMotor backLeft = hardwareMap.get(DcMotor.class, "backLeft");
+            DcMotor frontRight = hardwareMap.get(DcMotor.class, "frontRight");
+            DcMotor backRight = hardwareMap.get(DcMotor.class, "backRight");
+            // (CornerShot already set the motor directions.)
+
+            telemetry.addData("Status", "Ready. Press START.");
+            telemetry.update();
+            waitForStart();
+
+            while (opModeIsActive()) {
+
+                if (inCorner && gamepad1.x && !cornerShot.hasShootingSpot()) {
+                    cornerShot.resetPose();   // measuring mode: reset only, no driving or shooting
+                    telemetry.addData("Last corner shot", "reset only (no shooting spot set yet)");
+                } else if (inCorner && gamepad1.x) {
+                    cornerShot.resetPose();
+                    boolean ok = cornerShot.driveToShootingSpot() && cornerShot.shoot();
+                    cornerShot.stop();
+                    telemetry.addData("Last corner shot", ok ? "done" : "CANCELLED");
+                }
+
+                // Normal driving, same as DriveMode.
+
             // ---------- DRIVING ----------
             double forward = -gamepad1.left_stick_y;   // stick forward is negative, so flip it
             double strafe = gamepad1.left_stick_x;     // sideways
@@ -224,20 +248,13 @@ public class DriveMode extends LinearOpMode {
             telemetry.addData("Corner reset", inCorner);
             telemetry.addData("Snap turn", snapping ? "going to " + snapAngle : "off");
             telemetry.addData("Limelight sees target", seesTarget);
+            telemetry.addData("Corner", inCorner ? "IN CORNER - press X" : "not in corner");
+            cornerShot.addPositionTelemetry();
             telemetry.update();
         }
 
         flywheel.stop();
     }
-    @Override
-    public void runOpMode() {
-        CornerShot cornerShot = new CornerShot(this);
-        DcMotor frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
-        DcMotor backLeft = hardwareMap.get(DcMotor.class, "backLeft");
-        DcMotor frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-        DcMotor backRight = hardwareMap.get(DcMotor.class, "backRight");
-        // (CornerShot already set the motor directions.)
-
         telemetry.addData("Status", "Ready. Press START.");
         telemetry.update();
         waitForStart();
@@ -254,15 +271,7 @@ public class DriveMode extends LinearOpMode {
                 cornerShot.stop();
                 telemetry.addData("Last corner shot", ok ? "done" : "CANCELLED");
             }
-
-            // Normal driving, same as DriveMode.
-            double forward = -gamepad1.left_stick_y;
-            double strafe = gamepad1.left_stick_x;
-            double turn = -gamepad1.right_stick_x;
-            frontLeft.setPower(forward + strafe + turn);
-            frontRight.setPower(forward - strafe - turn);
-            backLeft.setPower(forward - strafe + turn);
-            backRight.setPower(forward + strafe - turn);
+            
 
             telemetry.addData("Corner", inCorner ? "IN CORNER - press X" : "not in corner");
             cornerShot.addPositionTelemetry();

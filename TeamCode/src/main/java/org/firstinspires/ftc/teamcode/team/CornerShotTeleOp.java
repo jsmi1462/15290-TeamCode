@@ -31,10 +31,10 @@ public class CornerShotTeleOp extends LinearOpMode {
         while (opModeIsActive()) {
             boolean inCorner = cornerShot.inCorner();
 
-            if (inCorner && gamepad1.x && !cornerShot.hasShootingSpot()) {
+            if (inCorner && gamepad1.left_bumper && !cornerShot.hasShootingSpot()) {
                 cornerShot.resetPose();   // measuring mode: reset only, no driving or shooting
                 telemetry.addData("Last corner shot", "reset only (no shooting spot set yet)");
-            } else if (inCorner && gamepad1.x) {
+            } else if (inCorner && gamepad1.left_bumper) {
                 cornerShot.resetPose();
                 boolean ok = cornerShot.driveToShootingSpot() && cornerShot.shoot();
                 cornerShot.stop();
@@ -43,7 +43,7 @@ public class CornerShotTeleOp extends LinearOpMode {
 
             // Normal driving, same as DriveMode.
             double forward = -gamepad1.left_stick_y;
-            double strafe = gamepad1.left_stick_x;
+            double strafe = -gamepad1.left_stick_x;
             double turn = -gamepad1.right_stick_x;
             frontLeft.setPower(forward + strafe + turn);
             frontRight.setPower(forward - strafe - turn);
