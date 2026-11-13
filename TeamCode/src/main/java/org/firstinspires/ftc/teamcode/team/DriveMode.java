@@ -206,14 +206,14 @@ public class DriveMode extends LinearOpMode {
 
             // ---------- SHOOTER ----------
             // One tap of Y or X (driver 1) changes the speed by 0.1.
-            if (gamepad1.y && !yWasPressed) {
+            if (gamepad2.y && !yWasPressed) {
                 shooterPower = Math.min(1.0, Math.round((shooterPower + 0.1) * 10) / 10.0);
             }
-            if (gamepad1.x && !xWasPressed) {
+            if (gamepad2.x && !xWasPressed) {
                 shooterPower = Math.max(0.2, Math.round((shooterPower - 0.1) * 10) / 10.0);
             }
-            yWasPressed = gamepad1.y;
-            xWasPressed = gamepad1.x;
+            yWasPressed = gamepad2.y;
+            xWasPressed = gamepad2.x;
 
             boolean shooterStop = gamepad1.b || gamepad2.b;   // emergency stop
             double shooterSetting = TuningConfig.overrideShooterPower ? TuningConfig.shooterPower : shooterPower;
@@ -271,7 +271,7 @@ public class DriveMode extends LinearOpMode {
                 cornerShot.stop();
                 telemetry.addData("Last corner shot", ok ? "done" : "CANCELLED");
             }
-            
+
 
             telemetry.addData("Corner", inCorner ? "IN CORNER - press X" : "not in corner");
             cornerShot.addPositionTelemetry();
