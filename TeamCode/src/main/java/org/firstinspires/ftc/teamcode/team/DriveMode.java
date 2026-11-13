@@ -80,6 +80,7 @@ public class DriveMode extends LinearOpMode {
     public void runOpMode() {
 
         // ================= STEP 1: connect to the robot's parts =================
+        CornerShot cornerShot = new CornerShot(this);
         frontLeftDrive = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRightDrive = hardwareMap.get(DcMotor.class, "frontRight");
         backLeftDrive = hardwareMap.get(DcMotor.class, "backLeft");
@@ -124,7 +125,17 @@ public class DriveMode extends LinearOpMode {
 
         // ================= STEP 4: the loop. Everything below repeats until STOP. =================
         while (opModeIsActive()) {
+            boolean inCorner = cornerShot.inCorner();
 
+            if (inCorner && gamepad1.x && !cornerShot.hasShootingSpot()) {
+                cornerShot.resetPose();   // measuring mode: reset only, no driving or shooting
+                telemetry.addData("Last corner shot", "reset only (no shooting spot set yet)");
+            } else if (inCorner && gamepad1.x) {
+                cornerShot.resetPose();
+                boolean ok = cornerShot.driveToShootingSpot() && cornerShot.shoot();
+                cornerShot.stop();
+                telemetry.addData("Last corner shot", ok ? "done" : "CANCELLED");
+            }
             pinpoint.update();   // get a fresh position and angle
             double heading = pinpoint.getPosition().getHeading(AngleUnit.DEGREES);
 
@@ -189,31 +200,6 @@ public class DriveMode extends LinearOpMode {
             intake.setPower(gamepad2.a ? TuningConfig.intakePower : 0.0);
             windmill.setPower(gamepad2.left_bumper ? TuningConfig.windmillPower : 0.0);
 
-            // ---------- CORNER RESET ----------
-            // In the corner, both distance sensors read the same known number. When that is true for a
-            // moment, we KNOW exactly where the robot is, so we tell the Pinpoint.
-            String cornerStatus = "sensors not found";
-            if (distBack != null && distRight != null) {
-                double backInches = distBack.getDistance(DistanceUnit.INCH);
-                double rightInches = distRight.getDistance(DistanceUnit.INCH);
-                boolean inCorner = Math.abs(backInches - TuningConfig.cornerN) <= TuningConfig.cornerTolIn
-                        && Math.abs(rightInches - TuningConfig.cornerN) <= TuningConfig.cornerTolIn;
-
-                if (!inCorner) {
-                    cornerTimer.reset();   // not in the corner: restart the wait
-                    cornerDone = false;    // and allow a new reset next time we arrive
-                    cornerStatus = "not in corner";
-                } else if (!cornerDone && TuningConfig.cornerResetEnabled
-                        && cornerTimer.milliseconds() >= TuningConfig.cornerHoldMs) {
-                    pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, TuningConfig.cornerX,
-                            TuningConfig.cornerY, AngleUnit.DEGREES, TuningConfig.cornerHeadingDeg));
-                    cornerDone = true;
-                }
-                if (inCorner) {
-                    cornerStatus = cornerDone ? "RESET DONE" : "hold still...";
-                }
-                telemetry.addData("Distance back / right (in)", "%.1f / %.1f", backInches, rightInches);
-            }
 
             // ---------- LIMELIGHT (settings come from TuningConfig) ----------
             if (TuningConfig.limelightPipeline != pipelineInUse) {
@@ -235,7 +221,7 @@ public class DriveMode extends LinearOpMode {
             telemetry.addData("Position x / y (in)", "%.1f / %.1f",
                     position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH));
             telemetry.addData("Angle (deg)", "%.1f", heading);
-            telemetry.addData("Corner reset", cornerStatus);
+            telemetry.addData("Corner reset", inCorner);
             telemetry.addData("Snap turn", snapping ? "going to " + snapAngle : "off");
             telemetry.addData("Limelight sees target", seesTarget);
             telemetry.update();
