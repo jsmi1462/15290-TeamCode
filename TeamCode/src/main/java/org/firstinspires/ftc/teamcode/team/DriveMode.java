@@ -112,7 +112,7 @@ public class DriveMode extends LinearOpMode {
         waitForStart();
 
         // ================= STEP 3: things we remember between loops =================
-        double shooterPower = 0.2;          // 0.2 = 20% speed. Driver 1 raises or lowers it.
+        double shooterPower = 0.2;          // 0.2 = 20% speed. Driver 2 raises or lowers it.
         boolean yWasPressed = false;        // lets us count one tap as one step, not a held button
         boolean xWasPressed = false;
         ElapsedTime cornerTimer = new ElapsedTime();   // how long we have been sitting in the corner
@@ -200,12 +200,12 @@ public class DriveMode extends LinearOpMode {
             backRightDrive.setPower(backRightPower);
 
             // ---------- SHOOTER ----------
-            // One tap of Y or X (driver 1) changes the speed by 0.1.
+            // One tap of Y or X (driver 2) changes the speed by 0.05.
             if (gamepad2.y && !yWasPressed) {
-                shooterPower = Math.min(1.0, Math.round((shooterPower + 0.1) * 10) / 10.0);
+                shooterPower = Math.min(1.0, Math.round((shooterPower + 0.05) * 100) / 100.0);
             }
             if (gamepad2.x && !xWasPressed) {
-                shooterPower = Math.max(0.2, Math.round((shooterPower - 0.1) * 10) / 10.0);
+                shooterPower = Math.max(0.2, Math.round((shooterPower - 0.05) * 100) / 100.0);
             }
             yWasPressed = gamepad2.y;
             xWasPressed = gamepad2.x;
@@ -227,7 +227,7 @@ public class DriveMode extends LinearOpMode {
             // ---------- WHAT THE DRIVERS SEE ----------
             Pose2D position = pinpoint.getPosition();
             telemetry.addData("Shooter", shooterStop ? "E-STOP" : (flywheel.isReady() ? "READY" : "spooling..."));
-            telemetry.addData("Shooter setting", "%.1f", shooterSetting);
+            telemetry.addData("Shooter setting", "%.2f", shooterSetting);
             telemetry.addData("Shooter speed target / actual", "%.0f / %.0f", flywheel.getTarget(), flywheel.getVelocity1());
             telemetry.addData("Position x / y (in)", "%.1f / %.1f",
                     position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH));
