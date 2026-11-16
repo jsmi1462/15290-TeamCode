@@ -13,6 +13,7 @@ public class AutoUp extends BaseAuto {
     public void runOpMode() {
         initRobot();
         waitForStart();
+        spinUpAndShoot();
         startAuto();   // remember the heading right before we start driving
 
         forward(27);
