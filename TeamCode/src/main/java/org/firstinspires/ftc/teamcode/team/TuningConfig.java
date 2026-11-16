@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.team;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.hardware.dfrobot.HuskyLens;
 
 /**
  * Values you can change live from FTC Dashboard (http://192.168.43.1:8080/dash while on the robot's Wi-Fi).
@@ -44,10 +45,11 @@ public class TuningConfig {
     public static double intakePower = 1.0;
     public static double windmillPower = 1.0;
 
-    // ---- Limelight ----
-    public static int limelightPipeline = 0;
-    /** How many results per second the Limelight sends back (1-250). */
-    public static int limelightPollHz = 100;
+    // ---- HuskyLens camera ----
+    /** What the HuskyLens looks for: TAG_RECOGNITION (AprilTags), COLOR_RECOGNITION, OBJECT_RECOGNITION, ... */
+    public static HuskyLens.Algorithm huskyLensAlgorithm = HuskyLens.Algorithm.TAG_RECOGNITION;
+    /** Re-read the camera at most this often (ms). Each I2C read slows the loop a little. */
+    public static double huskyLensReadMs = 50;
 
     // ---- Corner reset (two distance sensors on the back-right corner: one faces back, one faces right) ----
     public static boolean cornerResetEnabled = true;
