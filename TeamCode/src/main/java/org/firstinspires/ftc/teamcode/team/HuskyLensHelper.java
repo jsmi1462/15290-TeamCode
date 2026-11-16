@@ -21,8 +21,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class HuskyLensHelper {
     public static final String DEVICE_NAME = "huskylens";
     /** Center of the HuskyLens image, in pixels. */
-    public static final int CENTER_X = 160;
-    public static final int CENTER_Y = 120;
+    public static final int CENTER_X = 160; //*
+    public static final int CENTER_Y = 120; //*
 
     private static final HuskyLens.Block[] NONE = new HuskyLens.Block[0];
 
@@ -122,3 +122,23 @@ public class HuskyLensHelper {
     public void stop() {
     }
 }
+
+
+//*
+// GET robot's current X and Y position
+//
+//CALCULATE distance from robot to shooting target
+//
+//IF distance is less than 20 inches:
+//    SET shooter power to 0.6
+//
+//ELSE IF distance is less than 30 inches:
+//    SET shooter power to 0.7
+//
+//ELSE IF distance is less than 40 inches:
+//    SET shooter power to 0.8
+//
+//ELSE:
+//    SET shooter power to 0.9
+//
+//SET shooter motor to calculated power
