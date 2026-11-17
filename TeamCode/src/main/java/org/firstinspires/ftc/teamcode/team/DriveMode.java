@@ -219,6 +219,20 @@ public class DriveMode extends LinearOpMode {
             intake.setPower(gamepad2.a ? TuningConfig.intakePower : 0.0);
             windmill.setPower(gamepad2.left_bumper ? TuningConfig.windmillPower : 0.0);
 
+                //----------- Outtake Function -----------
+                if (gamepad2.dpad_down){
+                    intake.setDirection(DcMotor.Direction.REVERSE);
+                    windmill.setDirection(DcMotor.Direction.REVERSE);
+
+                    intake.setPower(1);
+                    windmill.setPower(1);
+                }
+                else if (gamepad2.a) {
+                    intake.setDirection(DcMotor.Direction.FORWARD);
+                    windmill.setDirection(DcMotor.Direction.FORWARD);
+
+                    intake.setPower(1);
+                }
 
             // ---------- HUSKYLENS (settings come from TuningConfig) ----------
             // TODO: use what the camera sees here (e.g. auto-aim with huskyLens.blockWithId(...).x).
