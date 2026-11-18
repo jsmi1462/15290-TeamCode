@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.team;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -35,7 +36,7 @@ public abstract class BaseAuto extends LinearOpMode {
 
     protected DcMotor frontLeftDrive, backLeftDrive, frontRightDrive, backRightDrive;
     protected GoBildaPinpointDriver pinpoint;
-    protected HuskyLensHelper huskyLens;
+    protected Limelight3A limelight;
     protected ShooterFlywheel flywheel;
     protected DcMotor intake, windmill;
 
@@ -182,7 +183,10 @@ public abstract class BaseAuto extends LinearOpMode {
         pinpoint.resetPosAndIMU();
         sleep(300); // let the IMU finish calibrating before reading
 
-        huskyLens = new HuskyLensHelper(hardwareMap); // TODO: use it in your autos (huskyLens.blocks())
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.pipelineSwitch(TuningConfig.limelightPipeline);
+        limelight.setPollRateHz(Math.max(1, Math.min(250, TuningConfig.limelightPollHz)));
+        limelight.start();
 
         telemetry.setMsTransmissionInterval(11);
         telemetry.addData(">", "Robot Ready.  Press Play.");
@@ -200,6 +204,6 @@ public abstract class BaseAuto extends LinearOpMode {
         flywheel.stop();
         intake.setPower(0);
         windmill.setPower(0);
-        huskyLens.stop();
+        limelight.stop();
     }
 }

@@ -31,7 +31,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 public class TemplateAuto extends LinearOpMode {
 
     private Follower follower;
-    private HuskyLensHelper huskyLens;
+    private LimelightHelper limelight;
     private final ElapsedTime timer = new ElapsedTime();
 
     private int state = 0;
@@ -46,7 +46,7 @@ public class TemplateAuto extends LinearOpMode {
     @Override
     public void runOpMode() {
         follower = Constants.create(hardwareMap);
-        huskyLens = new HuskyLensHelper(hardwareMap);
+        limelight = new LimelightHelper(hardwareMap);
 
         follower.setPose(Poses.START);
 
@@ -63,7 +63,7 @@ public class TemplateAuto extends LinearOpMode {
                         entering = false;
                     }
                     if (!follower.isBusy()) {
-                        huskyLens.relocalize(follower); // fix odometry drift while stopped (TODO in HuskyLensHelper)
+                        limelight.relocalize(follower); // fix odometry drift while stopped
                         next();
                     }
                     break;
@@ -81,6 +81,6 @@ public class TemplateAuto extends LinearOpMode {
             telemetry.update();
         }
 
-        huskyLens.stop();
+        limelight.stop();
     }
 }
