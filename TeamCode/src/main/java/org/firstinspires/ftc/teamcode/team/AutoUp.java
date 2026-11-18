@@ -74,9 +74,11 @@ public class AutoUp extends BaseAuto {
 
         forward(3);
         LeftTurn45();
-        windmill.setPower(100);
+        windmill.setPower(1);
+        intake.setPower(1);
         TimeUnit.SECONDS.sleep(3);
         windmill.setPower(0);
+        intake.setPower(0);
         LeftTurn45();
         forward(86);
         strafeLeft(3);
