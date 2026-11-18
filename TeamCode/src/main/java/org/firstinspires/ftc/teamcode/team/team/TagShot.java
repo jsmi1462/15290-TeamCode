@@ -13,3 +13,20 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
 initRobot();
+
+@TeleOp(name = "Tag Shot", group = "Test")
+public class TagShot extends BaseAuto {
+
+    static final int TAG_ID = 0;   // step 2 tells you the real number
+
+    @Override
+    public void runOpMode() {
+        initRobot();
+        waitForStart();
+        while (opModeIsActive()) {
+            // steps 2 to 6 go here
+            telemetry.update();
+        }
+        endAuto();
+    }
+}
