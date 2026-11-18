@@ -2,7 +2,8 @@ package org.firstinspires.ftc.teamcode.team;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.qualcomm.hardware.dfrobot.HuskyLens;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -30,7 +31,7 @@ public class ShooterTuning extends LinearOpMode {
         DcMotorEx shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
         DcMotor windmill = hardwareMap.get(DcMotor.class, "windmill");
-        HuskyLensHelper huskyLens = new HuskyLensHelper(hardwareMap);
+        Limelight3A limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         // Same directions as DriveMode.
         shooter1.setDirection(DcMotor.Direction.FORWARD);
@@ -58,12 +59,24 @@ public class ShooterTuning extends LinearOpMode {
 
         boolean upWasPressed = false;
         boolean downWasPressed = false;
+        int appliedPipeline = -1;
+        int appliedPollHz = -1;
+        limelight.start();
 
         telemetry.addData("Status", "Ready. Open the dashboard and press Play.");
         telemetry.update();
         waitForStart();
 
         while (opModeIsActive()) {
+            if (TuningConfig.limelightPipeline != appliedPipeline) {
+                appliedPipeline = TuningConfig.limelightPipeline;
+                limelight.pipelineSwitch(appliedPipeline);
+            }
+            if (TuningConfig.limelightPollHz != appliedPollHz) {
+                appliedPollHz = TuningConfig.limelightPollHz;
+                limelight.setPollRateHz(Math.max(1, Math.min(250, appliedPollHz)));
+            }
+
             // D-pad up / down on gamepad 1 changes the power by 0.05 (works even without FTC Dashboard).
             if (gamepad1.dpad_up && !upWasPressed) {
                 TuningConfig.shooterPower = Math.min(1.0, Math.round((TuningConfig.shooterPower + 0.05) * 100) / 100.0);
@@ -113,20 +126,18 @@ public class ShooterTuning extends LinearOpMode {
             telemetry.addData("Target (tps)", flywheel.getTarget());
             telemetry.addData("Shooter ready", flywheel.isReady());
 
-            HuskyLens.Block target = huskyLens.largestBlock();
-            if (!huskyLens.isConnected()) {
-                telemetry.addData("HuskyLens", "not configured");
-            } else if (target != null) {
-                telemetry.addData("HuskyLens id", target.id);
-                telemetry.addData("HuskyLens x / y (px)", "%d / %d", target.x, target.y);
-                telemetry.addData("HuskyLens width (px)", target.width);
+            LLResult result = limelight.getLatestResult();
+            if (result != null && result.isValid()) {
+                telemetry.addData("LL tx", result.getTx());
+                telemetry.addData("LL ty", result.getTy());
+                telemetry.addData("LL ta", result.getTa());
             } else {
-                telemetry.addData("HuskyLens", "No target");
+                telemetry.addData("Limelight", "No target");
             }
             telemetry.update();
         }
 
         flywheel.stop();
-        huskyLens.stop();
+        limelight.stop();
     }
 }

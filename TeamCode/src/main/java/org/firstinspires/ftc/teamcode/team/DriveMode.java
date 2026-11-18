@@ -30,6 +30,8 @@
 package org.firstinspires.ftc.teamcode.team;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -70,7 +72,7 @@ public class DriveMode extends LinearOpMode {
     private DcMotor intake;
     private DcMotor windmill;
     private GoBildaPinpointDriver pinpoint;  // tells us where the robot is and which way it faces
-    private HuskyLensHelper huskyLens;  // camera; does nothing if "huskylens" isn't in the config
+    private Limelight3A limelight;
     private DistanceSensor distBack;    // back-right corner of the robot, points at the back wall
     private DistanceSensor distRight;   // back-right corner of the robot, points at the right wall
 
@@ -88,7 +90,7 @@ public class DriveMode extends LinearOpMode {
         intake = hardwareMap.get(DcMotor.class, "intake");
         windmill = hardwareMap.get(DcMotor.class, "windmill");
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        huskyLens = new HuskyLensHelper(hardwareMap);
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
         // tryGet = if a sensor is missing, skip the corner reset instead of crashing.
         distBack = hardwareMap.tryGet(DistanceSensor.class, "distBack");
         distRight = hardwareMap.tryGet(DistanceSensor.class, "distRight");
@@ -112,11 +114,14 @@ public class DriveMode extends LinearOpMode {
         waitForStart();
 
         // ================= STEP 3: things we remember between loops =================
-        double shooterPower = 0.2;          // 0.2 = 20% speed. Driver 1 raises or lowers it.
+        double shooterPower = 0.2;          // 0.2 = 20% speed. Driver 2 raises or lowers it.
         boolean yWasPressed = false;        // lets us count one tap as one step, not a held button
         boolean xWasPressed = false;
         ElapsedTime cornerTimer = new ElapsedTime();   // how long we have been sitting in the corner
         boolean cornerDone = false;         // true once the position was reset for this visit
+        int pipelineInUse = -1;             // the Limelight pipeline we last switched to
+        int pollRateInUse = -1;             // the Limelight update rate we last set
+        limelight.start();
 
         // ================= STEP 4: the loop. Everything below repeats until STOP. =================
         while (opModeIsActive()) {
@@ -200,12 +205,12 @@ public class DriveMode extends LinearOpMode {
             backRightDrive.setPower(backRightPower);
 
             // ---------- SHOOTER ----------
-            // One tap of Y or X (driver 1) changes the speed by 0.1.
+            // One tap of Y or X (driver 2) changes the speed by 0.05.
             if (gamepad2.y && !yWasPressed) {
-                shooterPower = Math.min(1.0, Math.round((shooterPower + 0.1) * 10) / 10.0);
+                shooterPower = Math.min(1.0, Math.round((shooterPower + 0.05) * 100) / 100.0);
             }
             if (gamepad2.x && !xWasPressed) {
-                shooterPower = Math.max(0.2, Math.round((shooterPower - 0.1) * 10) / 10.0);
+                shooterPower = Math.max(0.2, Math.round((shooterPower - 0.05) * 100) / 100.0);
             }
             yWasPressed = gamepad2.y;
             xWasPressed = gamepad2.x;
@@ -219,22 +224,44 @@ public class DriveMode extends LinearOpMode {
             intake.setPower(gamepad2.a ? TuningConfig.intakePower : 0.0);
             windmill.setPower(gamepad2.left_bumper ? TuningConfig.windmillPower : 0.0);
 
+                //----------- Outtake Function -----------
+                if (gamepad2.dpad_down){
+                    intake.setDirection(DcMotor.Direction.REVERSE);
+                    windmill.setDirection(DcMotor.Direction.REVERSE);
 
-            // ---------- HUSKYLENS (settings come from TuningConfig) ----------
-            // TODO: use what the camera sees here (e.g. auto-aim with huskyLens.blockWithId(...).x).
-            boolean seesTarget = huskyLens.seesTarget();
+                    intake.setPower(1);
+                    windmill.setPower(1);
+                }
+                else if (gamepad2.a) {
+                    intake.setDirection(DcMotor.Direction.FORWARD);
+                    windmill.setDirection(DcMotor.Direction.FORWARD);
+
+                    intake.setPower(1);
+                }
+
+            // ---------- LIMELIGHT (settings come from TuningConfig) ----------
+            if (TuningConfig.limelightPipeline != pipelineInUse) {
+                pipelineInUse = TuningConfig.limelightPipeline;
+                limelight.pipelineSwitch(pipelineInUse);
+            }
+            if (TuningConfig.limelightPollHz != pollRateInUse) {
+                pollRateInUse = TuningConfig.limelightPollHz;
+                limelight.setPollRateHz(Math.max(1, Math.min(250, pollRateInUse)));
+            }
+            LLResult camera = limelight.getLatestResult();
+            boolean seesTarget = camera != null && camera.isValid();
 
             // ---------- WHAT THE DRIVERS SEE ----------
             Pose2D position = pinpoint.getPosition();
             telemetry.addData("Shooter", shooterStop ? "E-STOP" : (flywheel.isReady() ? "READY" : "spooling..."));
-            telemetry.addData("Shooter setting", "%.1f", shooterSetting);
+            telemetry.addData("Shooter setting", "%.2f", shooterSetting);
             telemetry.addData("Shooter speed target / actual", "%.0f / %.0f", flywheel.getTarget(), flywheel.getVelocity1());
             telemetry.addData("Position x / y (in)", "%.1f / %.1f",
                     position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH));
             telemetry.addData("Angle (deg)", "%.1f", heading);
             telemetry.addData("Corner reset", inCorner);
             telemetry.addData("Snap turn", snapping ? "going to " + snapAngle : "off");
-            telemetry.addData("HuskyLens sees target", huskyLens.isConnected() ? seesTarget : "not configured");
+            telemetry.addData("Limelight sees target", seesTarget);
             telemetry.addData("Corner", inCorner ? "IN CORNER - press X" : "not in corner");
             cornerShot.addPositionTelemetry();
             telemetry.update();

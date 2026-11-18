@@ -70,8 +70,9 @@ Everything you write is in `TeamCode/src/main/java/org/firstinspires/ftc/teamcod
 In the `pedro` folder, the only file you edit is `Constants.java`. That is where your tuned numbers
 go (see Tuning below). Leave `Tuning.java` and the `procedures` folder alone.
 
-See `team/README.md` for what each file is. Setting up the HuskyLens camera is also yours: see the
-HuskyLens steps in `team/README.md`.
+See `team/README.md` for what each file is. Setting up the Limelight camera is also yours: follow
+`LIMELIGHT_GUIDE.md`. After that, `TAG_SHOT_GUIDE.md` walks you through driving to a spot next to
+an AprilTag and shooting from it.
 
 ### Draw your path first
 
