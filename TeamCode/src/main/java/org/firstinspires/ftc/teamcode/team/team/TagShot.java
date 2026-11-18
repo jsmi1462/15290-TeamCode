@@ -12,6 +12,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.team.BaseAuto;
+import org.firstinspires.ftc.teamcode.team.TuningConfig;
 
 @TeleOp(name = "Tag Shot", group = "Test")
 public class TagShot extends BaseAuto {
