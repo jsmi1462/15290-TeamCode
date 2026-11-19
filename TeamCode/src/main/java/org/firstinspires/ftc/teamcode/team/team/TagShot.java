@@ -1,9 +1,9 @@
 
-
 package org.firstinspires.ftc.teamcode.team.team;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
 
@@ -18,217 +18,323 @@ import org.firstinspires.ftc.teamcode.team.TuningConfig;
 public class TagShot extends BaseAuto {
 
     // =====================================
-    // APRILTAG SETTINGS
+    // LIMELIGHT SETTINGS
     // =====================================
 
-    static final int TAG_ID = 0; // CHANGE to your AprilTag ID
+    private static final int LIMELIGHT_PIPELINE = 0;
 
     // =====================================
-    // SHOOTING POSITION
+    // APRILTAG IDS
     // =====================================
 
-    static final double TARGET_DISTANCE_IN = 0;
-    static final double TARGET_SIDEWAYS_IN = 0;
-    static final double TARGET_YAW_DEG = 0;
+    private static final int TAG_31 = 31;
+    private static final int TAG_44 = 44;
+    private static final int TAG_36 = 36;
+    private static final int TAG_39 = 39;
 
     // =====================================
     // DRIVE SETTINGS
     // =====================================
 
-    static final double DRIVE_GAIN = 0.03;
-    static final double TURN_GAIN = 0.02;
+    private static final double DRIVE_GAIN = 0.03;
+    private static final double TURN_GAIN = 0.02;
 
-    static final double MAX_POWER = 0.4;
+    private static final double MAX_POWER = 0.30;
 
-    static final double DONE_IN = 1.0;
-    static final double DONE_DEG = 2.0;
+    private static final double DONE_IN = 1.0;
+    private static final double DONE_DEG = 2.0;
+
+    private static final double MAX_TAG_STALENESS_MS = 100.0;
 
     // =====================================
-    // SHOOTER SETTINGS
+    // SHOOTING POSITIONS
+    // Replace zeros with measured values
     // =====================================
 
-    static final double SHOT_SPEED_TPS = 0;
-    // Replace 0 with your measured Shooter Tuning speed.
+    // AprilTag 31
+    private static final TagTarget TARGET_31 =
+            new TagTarget(31, 0, 0, 0, 0);
+
+    // AprilTag 44
+    private static final TagTarget TARGET_44 =
+            new TagTarget(44, 0, 0, 0, 0);
+
+    // AprilTag 36
+    private static final TagTarget TARGET_36 =
+            new TagTarget(36, 0, 0, 0, 0);
+
+    // AprilTag 39
+    private static final TagTarget TARGET_39 =
+            new TagTarget(39, 0, 0, 0, 0);
+
+    private Limelight3A limelight;
+
+    // =====================================
+    // TAG TARGET CLASS
+    // =====================================
+
+    private static class TagTarget {
+
+        final int id;
+        final double distanceIn;
+        final double sidewaysIn;
+        final double yawDeg;
+        final double shotSpeedTps;
+
+        TagTarget(int id,
+                  double distanceIn,
+                  double sidewaysIn,
+                  double yawDeg,
+                  double shotSpeedTps) {
+
+            this.id = id;
+            this.distanceIn = distanceIn;
+            this.sidewaysIn = sidewaysIn;
+            this.yawDeg = yawDeg;
+            this.shotSpeedTps = shotSpeedTps;
+        }
+    }
+
+    // =====================================
+    // MAIN OPMODE
+    // =====================================
 
     @Override
     public void runOpMode() {
 
         initRobot();
 
+        // Initialize Limelight
+        limelight = hardwareMap.get(
+                Limelight3A.class, "limelight");
+
+        limelight.pipelineSwitch(LIMELIGHT_PIPELINE);
+        limelight.start();
+
         telemetry.addLine("Tag Shot Ready");
+        telemetry.addLine("Hold Driver 1 A to activate");
         telemetry.update();
 
         waitForStart();
 
-        while (opModeIsActive()) {
+        try {
 
-            // Find the AprilTag
-            Pose3D robot = robotFromTag();
+            while (opModeIsActive()) {
 
-            // Stop if A is released or tag is lost
-            if (robot == null || !gamepad1.a) {
+                // Find a recognized AprilTag
+                TagDetection detection = findKnownTag();
 
-                drive(0, 0, 0);
+                // Stop if A is released or tag is lost
+                if (!gamepad1.a || detection == null) {
 
-                flywheel.stop();
-                intake.setPower(0);
-                windmill.setPower(0);
+                    stopTagShot();
 
-                telemetry.addData("Tag",
-                        robot == null ? "Not Seen" : "Seen - Hold A");
+                    if (!gamepad1.a) {
+                        telemetry.addData(
+                                "Status", "Hold A to activate");
+                    } else {
+                        telemetry.addData(
+                                "Status", "No known tag seen");
+                    }
+
+                    telemetry.addData(
+                            "Accepted IDs", "31, 44, 36, 39");
+
+                    telemetry.update();
+                    continue;
+                }
+
+                // Get selected target
+                TagTarget target = detection.target;
+                Pose3D robotPose = detection.robotPose;
+
+                // =====================================
+                // READ LIMELIGHT POSITION
+                // =====================================
+
+                Position p = robotPose.getPosition()
+                        .toUnit(DistanceUnit.INCH);
+
+                double distance = p.z;
+                double sideways = p.x;
+
+                double yaw = robotPose.getOrientation()
+                        .getYaw(AngleUnit.DEGREES);
+
+                // =====================================
+                // CALCULATE ERRORS
+                // =====================================
+
+                double distanceError =
+                        distance - target.distanceIn;
+
+                double sidewaysError =
+                        sideways - target.sidewaysIn;
+
+                double yawError =
+                        yaw - target.yawDeg;
+
+                // Correct rotation direction
+                while (yawError > 180) yawError -= 360;
+                while (yawError < -180) yawError += 360;
+
+                // =====================================
+                // CHECK SHOOTING POSITION
+                // =====================================
+
+                boolean atSpot =
+                        Math.abs(distanceError) < DONE_IN
+                                && Math.abs(sidewaysError) < DONE_IN
+                                && Math.abs(yawError) < DONE_DEG;
+
+                // =====================================
+                // DRIVE TO SHOOTING POSITION
+                // =====================================
+
+                if (atSpot) {
+
+                    driveTagShot(0, 0, 0);
+
+                } else {
+
+                    double forward = Range.clip(
+                            distanceError * DRIVE_GAIN,
+                            -MAX_POWER,
+                            MAX_POWER);
+
+                    double strafe = Range.clip(
+                            sidewaysError * DRIVE_GAIN,
+                            -MAX_POWER,
+                            MAX_POWER);
+
+                    double turn = Range.clip(
+                            yawError * TURN_GAIN,
+                            -MAX_POWER,
+                            MAX_POWER);
+
+                    driveTagShot(forward, strafe, turn);
+                }
+
+                // =====================================
+                // SPIN UP FLYWHEEL
+                // =====================================
+
+                flywheel.spinTo(target.shotSpeedTps);
+
+                // =====================================
+                // CHECK IF READY TO SHOOT
+                // =====================================
+
+                boolean shoot =
+                        atSpot
+                                && target.shotSpeedTps > 0
+                                && flywheel.isReady();
+
+                // =====================================
+                // FEED BALLS
+                // =====================================
+
+                intake.setPower(
+                        shoot ? TuningConfig.intakePower : 0);
+
+                windmill.setPower(
+                        shoot ? TuningConfig.windmillPower : 0);
+
+                // =====================================
+                // TELEMETRY
+                // =====================================
+
+                telemetry.addData(
+                        "Selected AprilTag", target.id);
+
+                telemetry.addData(
+                        "Distance / Target",
+                        "%.1f / %.1f in",
+                        distance, target.distanceIn);
+
+                telemetry.addData(
+                        "Sideways / Target",
+                        "%.1f / %.1f in",
+                        sideways, target.sidewaysIn);
+
+                telemetry.addData(
+                        "Yaw / Target",
+                        "%.1f / %.1f deg",
+                        yaw, target.yawDeg);
+
+                telemetry.addData(
+                        "Distance Error", "%.1f", distanceError);
+
+                telemetry.addData(
+                        "Side Error", "%.1f", sidewaysError);
+
+                telemetry.addData(
+                        "Yaw Error", "%.1f", yawError);
+
+                telemetry.addData(
+                        "At Shooting Spot", atSpot);
+
+                telemetry.addData(
+                        "Flywheel Target",
+                        "%.0f TPS", target.shotSpeedTps);
+
+                telemetry.addData(
+                        "Flywheel Actual",
+                        "%.0f / %.0f TPS",
+                        flywheel.getVelocity1(),
+                        flywheel.getVelocity2());
+
+                telemetry.addData(
+                        "Flywheel Ready",
+                        flywheel.isReady());
+
+                telemetry.addData(
+                        "Feeding Balls", shoot);
 
                 telemetry.update();
-                continue;
             }
 
-            // =====================================
-            // READ LIMELIGHT POSITION
-            // =====================================
+        } finally {
 
-            Position p = robot.getPosition()
-                    .toUnit(DistanceUnit.INCH);
+            // Stop everything when OpMode ends
+            stopTagShot();
 
-            double distance = p.z;
-            double sideways = p.x;
+            limelight.stop();
 
-            double yaw = robot.getOrientation()
-                    .getYaw(AngleUnit.DEGREES);
-
-            // =====================================
-            // CALCULATE POSITION ERROR
-            // =====================================
-
-            double distErr =
-                    distance - TARGET_DISTANCE_IN;
-
-            double sideErr =
-                    sideways - TARGET_SIDEWAYS_IN;
-
-            double yawErr =
-                    yaw - TARGET_YAW_DEG;
-
-            // Keep turning error between -180 and 180
-            while (yawErr > 180) yawErr -= 360;
-            while (yawErr < -180) yawErr += 360;
-
-            // =====================================
-            // CHECK IF AT SHOOTING POSITION
-            // =====================================
-
-            boolean atSpot =
-                    Math.abs(distErr) < DONE_IN
-                            && Math.abs(sideErr) < DONE_IN
-                            && Math.abs(yawErr) < DONE_DEG;
-
-            // =====================================
-            // DRIVE TO SHOOTING POSITION
-            // =====================================
-
-            if (atSpot) {
-
-                drive(0, 0, 0);
-
-            } else {
-
-                double forward =
-                        Range.clip(
-                                distErr * DRIVE_GAIN,
-                                -MAX_POWER,
-                                MAX_POWER);
-
-                double strafe =
-                        Range.clip(
-                                sideErr * DRIVE_GAIN,
-                                -MAX_POWER,
-                                MAX_POWER);
-
-                double turn =
-                        Range.clip(
-                                yawErr * TURN_GAIN,
-                                -MAX_POWER,
-                                MAX_POWER);
-
-                drive(forward, strafe, turn);
-            }
-
-            // =====================================
-            // SPIN UP FLYWHEEL
-            // =====================================
-
-            flywheel.spinTo(SHOT_SPEED_TPS);
-
-            // Only shoot when positioned and ready
-            boolean shoot = atSpot && flywheel.isReady();
-
-            // =====================================
-            // FEED BALLS
-            // =====================================
-
-            intake.setPower(
-                    shoot ? TuningConfig.intakePower : 0);
-
-            windmill.setPower(
-                    shoot ? TuningConfig.windmillPower : 0);
-
-            // =====================================
-            // TELEMETRY
-            // =====================================
-
-            telemetry.addData("Tag", "Detected");
-
-            telemetry.addData("Distance", "%.1f", distance);
-            telemetry.addData("Sideways", "%.1f", sideways);
-            telemetry.addData("Yaw", "%.1f", yaw);
-
-            telemetry.addData("Distance Error", "%.1f", distErr);
-            telemetry.addData("Side Error", "%.1f", sideErr);
-            telemetry.addData("Yaw Error", "%.1f", yawErr);
-
-            telemetry.addData("At Shooting Spot", atSpot);
-
-            telemetry.addData("Flywheel Ready", flywheel.isReady());
-
-            telemetry.addData("Shooting", shoot);
-
-            telemetry.addData(
-                    "Flywheel Speed",
-                    "%.0f / %.0f tps",
-                    flywheel.getVelocity1(),
-                    flywheel.getTarget());
-
-            telemetry.update();
+            endAuto();
         }
-
-        // Stop everything when OpMode ends
-        drive(0, 0, 0);
-        flywheel.stop();
-        intake.setPower(0);
-        windmill.setPower(0);
-
-        endAuto();
     }
 
     // =====================================
-    // LIMELIGHT APRILTAG DETECTION
+    // FIND APRILTAG
     // =====================================
 
-    private Pose3D robotFromTag() {
+    private TagDetection findKnownTag() {
 
         LLResult result = limelight.getLatestResult();
 
         if (result == null
                 || !result.isValid()
-                || result.getStaleness() > 100) {
+                || result.getStaleness() > MAX_TAG_STALENESS_MS) {
 
             return null;
         }
 
-        for (LLResultTypes.FiducialResult tag :
+        for (LLResultTypes.FiducialResult fiducial :
                 result.getFiducialResults()) {
 
-            if (tag.getFiducialId() == TAG_ID) {
+            TagTarget target =
+                    targetForId(fiducial.getFiducialId());
 
-                return tag.getRobotPoseTargetSpace();
+            if (target != null) {
+
+                Pose3D pose =
+                        fiducial.getRobotPoseTargetSpace();
+
+                if (pose != null) {
+
+                    return new TagDetection(target, pose);
+                }
             }
         }
 
@@ -236,24 +342,99 @@ public class TagShot extends BaseAuto {
     }
 
     // =====================================
+    // SELECT SHOOTING POSITION
+    // =====================================
+
+    private TagTarget targetForId(int id) {
+
+        switch (id) {
+
+            case TAG_31:
+                return TARGET_31;
+
+            case TAG_44:
+                return TARGET_44;
+
+            case TAG_36:
+                return TARGET_36;
+
+            case TAG_39:
+                return TARGET_39;
+
+            default:
+                return null;
+        }
+    }
+
+    // =====================================
     // MECANUM DRIVE
     // =====================================
 
-    private void drive(
+    private void driveTagShot(
             double forward,
             double strafe,
             double turn) {
 
-        frontLeftDrive.setPower(
-                forward + strafe - turn);
+        double frontLeft =
+                forward + strafe - turn;
 
-        backLeftDrive.setPower(
-                forward - strafe - turn);
+        double backLeft =
+                forward - strafe - turn;
 
-        frontRightDrive.setPower(
-                forward - strafe + turn);
+        double frontRight =
+                forward - strafe + turn;
 
-        backRightDrive.setPower(
-                forward + strafe + turn);
+        double backRight =
+                forward + strafe + turn;
+
+        // Normalize wheel powers if necessary
+        double largest = Math.max(
+                Math.max(Math.abs(frontLeft),
+                        Math.abs(backLeft)),
+                Math.max(Math.abs(frontRight),
+                        Math.abs(backRight)));
+
+        if (largest > 1.0) {
+
+            frontLeft /= largest;
+            backLeft /= largest;
+            frontRight /= largest;
+            backRight /= largest;
+        }
+
+        frontLeftDrive.setPower(frontLeft);
+        backLeftDrive.setPower(backLeft);
+        frontRightDrive.setPower(frontRight);
+        backRightDrive.setPower(backRight);
+    }
+
+    // =====================================
+    // STOP ALL MOTORS
+    // =====================================
+
+    private void stopTagShot() {
+
+        driveTagShot(0, 0, 0);
+
+        flywheel.stop();
+
+        intake.setPower(0);
+        windmill.setPower(0);
+    }
+
+    // =====================================
+    // TAG DETECTION DATA
+    // =====================================
+
+    private static class TagDetection {
+
+        final TagTarget target;
+        final Pose3D robotPose;
+
+        TagDetection(TagTarget target, Pose3D robotPose) {
+
+            this.target = target;
+            this.robotPose = robotPose;
+        }
     }
 }
