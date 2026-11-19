@@ -1,6 +1,8 @@
 
 package org.firstinspires.ftc.teamcode.team.team;
 
+import static org.firstinspires.ftc.teamcode.team.TuningConfig.shooterPower;
+
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -69,6 +71,9 @@ public class TagShot extends BaseAuto {
 
     private Limelight3A limelight;
 
+    private boolean yWasPressed = false;
+    private boolean xWasPressed = false;
+
     // =====================================
     // TAG TARGET CLASS
     // =====================================
@@ -120,7 +125,21 @@ public class TagShot extends BaseAuto {
         try {
 
             while (opModeIsActive()) {
+                // ---------- SHOOTER ----------
+                // One tap of Y or X (driver 2) changes the speed by 0.05.
+                if (gamepad2.y && !yWasPressed) {
+                    shooterPower = Math.min(1.0, Math.round((shooterPower + 0.05) * 100) / 100.0);
+                }
+                if (gamepad2.x && !xWasPressed) {
+                    shooterPower = Math.max(0.2, Math.round((shooterPower - 0.05) * 100) / 100.0);
+                }
+                yWasPressed = gamepad2.y;
+                xWasPressed = gamepad2.x;
 
+                boolean shooterStop = gamepad1.b || gamepad2.b;   // emergency stop
+                double shooterSetting = shooterPower;
+                // The shooter holds a steady SPEED using its encoders. 1.0 means full speed (shooterMaxTps).
+                flywheel.spinTo(shooterStop ? 0.0 : shooterSetting * TuningConfig.shooterMaxTps);
                 // Find a recognized AprilTag
                 TagDetection detection = findKnownTag();
 
@@ -219,7 +238,8 @@ public class TagShot extends BaseAuto {
                 // SPIN UP FLYWHEEL
                 // =====================================
 
-                flywheel.spinTo(target.shotSpeedTps);
+                flywheel.spinTo(shooterStop ? 0.0 :
+                        shooterSetting * TuningConfig.shooterMaxTps);
 
                 // =====================================
                 // CHECK IF READY TO SHOOT
@@ -227,7 +247,7 @@ public class TagShot extends BaseAuto {
 
                 boolean shoot =
                         atSpot
-                                && target.shotSpeedTps > 0
+                                && !shooterStop
                                 && flywheel.isReady();
 
                 // =====================================
