@@ -60,7 +60,7 @@ public class TagShot extends BaseAuto {
             new TagTarget(37, 0, 0, 0, 0);
 
     private static final TagTarget TARGET_38 =
-            new TagTarget(38, 0, 0, 0, 0);
+            new TagTarget(38, 62.44, 35.37, 47.70, 0);
 
     private static final TagTarget TARGET_45 =
             new TagTarget(45, 0, 0, 0, 0);
