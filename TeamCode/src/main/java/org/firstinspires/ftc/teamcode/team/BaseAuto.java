@@ -84,7 +84,7 @@ public abstract class BaseAuto extends LinearOpMode {
             // 2. DRIVE (with a small turn to stay pointed straight).
             // Negative sign on headingError provides corrective turn power:
             // headingError > 0 (drift left) -> turn < 0 -> left wheels faster -> turns right back to straight.
-            setWheels(forwardPower, strafePower, -headingError * HEADING_GAIN);
+            setWheels(forwardPower, strafePower, headingError * HEADING_GAIN);
 
             telemetry.addData("Move", name);
             telemetry.addData("Traveled", "%.1f of %.1f in", traveled, inches);

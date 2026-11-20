@@ -61,19 +61,20 @@ public class AutoUp extends BaseAuto {
         waitForStart();
         startAuto();   // remember the heading right before we start driving
 
-        flywheel.spinTo(0.3 * TuningConfig.shooterMaxTps);
+        flywheel.spinTo(0.31 * TuningConfig.shooterMaxTps);
         TimeUnit.SECONDS.sleep(3);
 
         forward(3);
         strafeLeft(3);
-        LeftTurn(35);
+        LeftTurn(33);
         windmill.setPower(1);
         intake.setPower(1);
         TimeUnit.SECONDS.sleep(3);
         windmill.setPower(0);
         intake.setPower(0);
-        LeftTurn(30);
-        forward(86);
+        LeftTurn(50);
+        forward(80);
+        strafeLeft(3);
 
         endAuto();
     }
