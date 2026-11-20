@@ -38,6 +38,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -75,7 +76,7 @@ public class DriveMode extends LinearOpMode {
     private Limelight3A limelight;
     private DistanceSensor distBack;    // back-right corner of the robot, points at the back wall
     private DistanceSensor distRight;   // back-right corner of the robot, points at the right wall
-
+    private Servo barServo;
     @Override
     public void runOpMode() {
 
@@ -94,6 +95,8 @@ public class DriveMode extends LinearOpMode {
         // tryGet = if a sensor is missing, skip the corner reset instead of crashing.
         distBack = hardwareMap.tryGet(DistanceSensor.class, "distBack");
         distRight = hardwareMap.tryGet(DistanceSensor.class, "distRight");
+        barServo = hardwareMap.get(Servo.class, "barServo");
+
 
         // ================= STEP 2: set which way each motor spins =================
         // If the robot drives backward when you push the stick forward, flip FORWARD and REVERSE here.
@@ -292,5 +295,18 @@ public class DriveMode extends LinearOpMode {
             telemetry.update();
         }
         cornerShot.stop();
+
+        if (gamepad2.dpad_down) {
+            barServo.setPosition(0.0);
+        }
+
+        if (gamepad2.dpad_left) {
+            barServo.setPosition(0.2);
+        }
+
+        if (gamepad2.dpad_up) {
+            barServo.setPosition(0.4);
+        }
     }
+
 }
