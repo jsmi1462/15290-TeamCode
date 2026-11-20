@@ -82,7 +82,9 @@ public abstract class BaseAuto extends LinearOpMode {
             }
 
             // 2. DRIVE (with a small turn to stay pointed straight).
-            setWheels(forwardPower, strafePower, headingError * HEADING_GAIN);
+            // Negative sign on headingError provides corrective turn power:
+            // headingError > 0 (drift left) -> turn < 0 -> left wheels faster -> turns right back to straight.
+            setWheels(forwardPower, strafePower, -headingError * HEADING_GAIN);
 
             telemetry.addData("Move", name);
             telemetry.addData("Traveled", "%.1f of %.1f in", traveled, inches);
@@ -195,6 +197,11 @@ public abstract class BaseAuto extends LinearOpMode {
 
     /** Remember the starting heading so every move can drive straight relative to it. */
     protected void startAuto() {
+        updateStartHeading();
+    }
+
+    /** Update the heading reference to the current robot heading. Call this after manual turns. */
+    protected void updateStartHeading() {
         pinpoint.update();
         startHeadingRad = pinpoint.getPosition().getHeading(AngleUnit.RADIANS);
     }
