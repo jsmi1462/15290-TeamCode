@@ -50,10 +50,10 @@ public class AutoUp extends BaseAuto {
             }
 
             // Standard Mecanum / Tank counterclockwise turn
-            frontLeftDrive.setPower(-turnPower);
-            backLeftDrive.setPower(-turnPower);
-            frontRightDrive.setPower(turnPower);
-            backRightDrive.setPower(turnPower);
+            frontLeftDrive.setPower(turnPower);
+            backLeftDrive.setPower(turnPower);
+            frontRightDrive.setPower(-turnPower);
+            backRightDrive.setPower(-turnPower);
         }
         frontLeftDrive.setPower(0);
         backLeftDrive.setPower(0);
@@ -68,11 +68,12 @@ public class AutoUp extends BaseAuto {
         initRobot();
         waitForStart();
         pinpoint = hardwareMap.get(GoBildaPinpointDriver .class, "pinpoint");
-        flywheel.spinTo(0.5 * TuningConfig.shooterMaxTps);
+        flywheel.spinTo(0.3 * TuningConfig.shooterMaxTps);
         TimeUnit.SECONDS.sleep(3);
         startAuto();   // remember the heading right before we start driving
 
-        forward(3);
+        forward(2);
+        strafeLeft(2);
         LeftTurn45();
         windmill.setPower(1);
         intake.setPower(1);
