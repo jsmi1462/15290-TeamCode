@@ -27,18 +27,18 @@ public class TagShot extends BaseAuto {
     private static final double MAX_TAG_STALENESS_MS = 100.0;
 
     // =====================================
-    // BIOBUZZ APRILTAG IDS
+    // PREFERRED APRILTAG IDS
     // =====================================
 
-    // RED SCORING: 30, 31, 32, 33
-    // RED AUDIENCE: 34, 35, 36, 37
-    // BLUE AUDIENCE: 38, 39, 40, 41
-    // BLUE SCORING: 42, 43, 44, 45
+    // RED SCORING: 30
+    // RED AUDIENCE: 37
+    // BLUE AUDIENCE: 38
+    // BLUE SCORING: 45
 
-    private static final int TAG_RED_SCORING = 33;
-    private static final int TAG_RED_AUDIENCE = 34;
-    private static final int TAG_BLUE_AUDIENCE = 41;
-    private static final int TAG_BLUE_SCORING = 42;
+    private static final int TAG_RED_SCORING = 30;
+    private static final int TAG_RED_AUDIENCE = 37;
+    private static final int TAG_BLUE_AUDIENCE = 38;
+    private static final int TAG_BLUE_SCORING = 45;
 
     // =====================================
     // DRIVE SETTINGS
@@ -56,24 +56,22 @@ public class TagShot extends BaseAuto {
     // TARGET CALIBRATION
     // =====================================
 
-    // Replace these zeros with the measurements
-    // collected at the desired shooting position.
-    //
-    // Each AprilTag is calibrated independently.
+    // Keep false until all four targets have
+    // been measured at the desired shooting position.
 
     private static final boolean TARGETS_CALIBRATED = false;
 
-    private static final TagTarget TARGET_33 =
-            new TagTarget(33, 0, 0, 0, 0);
+    private static final TagTarget TARGET_30 =
+            new TagTarget(30, 0, 0, 0, 0);
 
-    private static final TagTarget TARGET_34 =
-            new TagTarget(34, 0, 0, 0, 0);
+    private static final TagTarget TARGET_37 =
+            new TagTarget(37, 0, 0, 0, 0);
 
-    private static final TagTarget TARGET_41 =
-            new TagTarget(41, 0, 0, 0, 0);
+    private static final TagTarget TARGET_38 =
+            new TagTarget(38, 0, 0, 0, 0);
 
-    private static final TagTarget TARGET_42 =
-            new TagTarget(42, 0, 0, 0, 0);
+    private static final TagTarget TARGET_45 =
+            new TagTarget(45, 0, 0, 0, 0);
 
     // =====================================
     // ROBOT VARIABLES
@@ -146,7 +144,7 @@ public class TagShot extends BaseAuto {
 
         telemetry.addLine("BIOBUZZ TAG SHOT READY");
         telemetry.addLine("Hold Driver 1 A to activate");
-        telemetry.addLine("Preferred tags: 33, 34, 41, 42");
+        telemetry.addLine("Preferred tags: 30, 37, 38, 45");
         telemetry.update();
 
         waitForStart();
@@ -217,7 +215,7 @@ public class TagShot extends BaseAuto {
                             "Visible AprilTags", visibleTagIds);
 
                     telemetry.addData(
-                            "Preferred IDs", "33, 34, 41, 42");
+                            "Preferred IDs", "30, 37, 38, 45");
 
                     telemetry.addData(
                             "Calibration Complete", TARGETS_CALIBRATED);
@@ -284,7 +282,6 @@ public class TagShot extends BaseAuto {
 
                 if (!TARGETS_CALIBRATED) {
 
-                    // Movement disabled until calibration is complete.
                     driveTagShot(0, 0, 0);
 
                 } else if (atSpot) {
@@ -473,7 +470,7 @@ public class TagShot extends BaseAuto {
                 ids.append(id);
             }
 
-            // Only use the four preferred corner tags for positioning.
+            // Only use the four preferred corner tags.
             TagTarget target = targetForId(id);
 
             if (target != null && selectedDetection == null) {
@@ -504,16 +501,16 @@ public class TagShot extends BaseAuto {
         switch (id) {
 
             case TAG_RED_SCORING:
-                return TARGET_33;
+                return TARGET_30;
 
             case TAG_RED_AUDIENCE:
-                return TARGET_34;
+                return TARGET_37;
 
             case TAG_BLUE_AUDIENCE:
-                return TARGET_41;
+                return TARGET_38;
 
             case TAG_BLUE_SCORING:
-                return TARGET_42;
+                return TARGET_45;
 
             default:
                 return null;
