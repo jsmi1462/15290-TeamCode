@@ -296,7 +296,7 @@ public class DriveMode extends LinearOpMode {
         }
         cornerShot.stop();
 
-        if (gamepad2.dpad_down) {
+        if (gamepad2.dpad_right) {
             barServo.setPosition(0.0);
         }
 
