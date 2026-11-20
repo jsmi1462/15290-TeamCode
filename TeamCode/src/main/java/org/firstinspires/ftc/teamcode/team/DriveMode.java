@@ -242,6 +242,22 @@ public class DriveMode extends LinearOpMode {
                     intake.setPower(1);
                 }
 
+                // ---------- BAR SERVO ----------
+                if (gamepad2.dpad_right) {
+                    barServo.setPosition(0.0);
+                    telemetry.addData("Bar Servo", "RIGHT - Position 0.0");
+                }
+                else if (gamepad2.dpad_left) {
+                    barServo.setPosition(0.2);
+                    telemetry.addData("Bar Servo", "LEFT - Position 0.2");
+                }
+                else if (gamepad2.dpad_up) {
+                    barServo.setPosition(0.4);
+                    telemetry.addData("Bar Servo", "UP - Position 0.4");
+                }
+                else {
+                    telemetry.addData("Bar Servo", "No button pressed");
+                }
             // ---------- LIMELIGHT (settings come from TuningConfig) ----------
             if (TuningConfig.limelightPipeline != pipelineInUse) {
                 pipelineInUse = TuningConfig.limelightPipeline;
@@ -296,17 +312,6 @@ public class DriveMode extends LinearOpMode {
         }
         cornerShot.stop();
 
-        if (gamepad2.dpad_down) {
-            barServo.setPosition(0.0);
-        }
-
-        if (gamepad2.dpad_left) {
-            barServo.setPosition(0.2);
-        }
-
-        if (gamepad2.dpad_up) {
-            barServo.setPosition(0.4);
-        }
     }
 
 }
