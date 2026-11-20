@@ -1,8 +1,6 @@
 
 package org.firstinspires.ftc.teamcode.team.team;
 
-import static org.firstinspires.ftc.teamcode.team.TuningConfig.shooterPower;
-
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -24,16 +22,10 @@ public class TagShot extends BaseAuto {
     // =====================================
 
     private static final int LIMELIGHT_PIPELINE = 0;
-    private static final double MAX_TAG_STALENESS_MS = 100.0;
 
     // =====================================
     // PREFERRED APRILTAG IDS
     // =====================================
-
-    // RED SCORING: 30
-    // RED AUDIENCE: 37
-    // BLUE AUDIENCE: 38
-    // BLUE SCORING: 45
 
     private static final int TAG_RED_SCORING = 30;
     private static final int TAG_RED_AUDIENCE = 37;
@@ -53,11 +45,11 @@ public class TagShot extends BaseAuto {
     private static final double DONE_DEG = 2.0;
 
     // =====================================
-    // TARGET CALIBRATION
+    // CALIBRATION SETTINGS
     // =====================================
 
-    // Keep false until all four targets have
-    // been measured at the desired shooting position.
+    // Keep false until all four target points
+    // have been measured and entered.
 
     private static final boolean TARGETS_CALIBRATED = false;
 
@@ -68,7 +60,7 @@ public class TagShot extends BaseAuto {
             new TagTarget(37, 0, 0, 0, 0);
 
     private static final TagTarget TARGET_38 =
-            new TagTarget(38, 0, 0, 0, 0);
+            new TagTarget(38, 62.44, 35.37, 47.70, 0);
 
     private static final TagTarget TARGET_45 =
             new TagTarget(45, 0, 0, 0, 0);
@@ -85,7 +77,7 @@ public class TagShot extends BaseAuto {
     private String visibleTagIds = "None";
 
     // =====================================
-    // TAG TARGET CLASS
+    // TARGET CLASS
     // =====================================
 
     private static class TagTarget {
@@ -112,7 +104,7 @@ public class TagShot extends BaseAuto {
     }
 
     // =====================================
-    // TAG DETECTION CLASS
+    // DETECTION CLASS
     // =====================================
 
     private static class TagDetection {
@@ -154,9 +146,10 @@ public class TagShot extends BaseAuto {
             while (opModeIsActive()) {
 
                 // =====================================
-                // MANUAL SHOOTER SPEED ADJUSTMENT
+                // MANUAL SHOOTER ADJUSTMENT
                 // =====================================
 
+                double shooterPower = 0;
                 if (gamepad2.y && !yWasPressed) {
 
                     shooterPower = Math.min(
@@ -181,19 +174,18 @@ public class TagShot extends BaseAuto {
 
                 double shooterSetting = shooterPower;
 
-                // Encoder-based flywheel control
                 flywheel.spinTo(
                         shooterStop ? 0.0 :
                                 shooterSetting * TuningConfig.shooterMaxTps);
 
                 // =====================================
-                // FIND PREFERRED APRILTAG
+                // FIND APRILTAG
                 // =====================================
 
                 TagDetection detection = findPreferredTag();
 
                 // =====================================
-                // STOP IF A IS RELEASED OR TAG IS LOST
+                // NO TAG OR A NOT PRESSED
                 // =====================================
 
                 if (!gamepad1.a || detection == null) {
@@ -201,14 +193,11 @@ public class TagShot extends BaseAuto {
                     stopTagShot();
 
                     if (!gamepad1.a) {
-
                         telemetry.addData(
                                 "Status", "Hold A to activate");
-
                     } else {
-
                         telemetry.addData(
-                                "Status", "No preferred corner tag seen");
+                                "Status", "No preferred tag detected");
                     }
 
                     telemetry.addData(
@@ -218,7 +207,8 @@ public class TagShot extends BaseAuto {
                             "Preferred IDs", "30, 37, 38, 45");
 
                     telemetry.addData(
-                            "Calibration Complete", TARGETS_CALIBRATED);
+                            "Calibration Complete",
+                            TARGETS_CALIBRATED);
 
                     telemetry.update();
 
@@ -226,7 +216,7 @@ public class TagShot extends BaseAuto {
                 }
 
                 // =====================================
-                // SELECTED TARGET
+                // SELECTED TAG
                 // =====================================
 
                 TagTarget target = detection.target;
@@ -267,7 +257,7 @@ public class TagShot extends BaseAuto {
                 }
 
                 // =====================================
-                // CHECK SHOOTING POSITION
+                // CHECK POSITION
                 // =====================================
 
                 boolean atSpot =
@@ -277,14 +267,10 @@ public class TagShot extends BaseAuto {
                                 && Math.abs(yawError) < DONE_DEG;
 
                 // =====================================
-                // DRIVE TO SHOOTING POSITION
+                // DRIVE
                 // =====================================
 
-                if (!TARGETS_CALIBRATED) {
-
-                    driveTagShot(0, 0, 0);
-
-                } else if (atSpot) {
+                if (!TARGETS_CALIBRATED || atSpot) {
 
                     driveTagShot(0, 0, 0);
 
@@ -309,7 +295,7 @@ public class TagShot extends BaseAuto {
                 }
 
                 // =====================================
-                // CHECK IF READY TO SHOOT
+                // SHOOTING CHECK
                 // =====================================
 
                 boolean shoot =
@@ -319,7 +305,7 @@ public class TagShot extends BaseAuto {
                                 && flywheel.isReady();
 
                 // =====================================
-                // FEED BALLS
+                // BALL FEED
                 // =====================================
 
                 intake.setPower(
@@ -335,37 +321,56 @@ public class TagShot extends BaseAuto {
                 telemetry.addLine("===== BIOBUZZ TAG SHOT =====");
 
                 telemetry.addData(
+                        "Status", "Preferred tag detected");
+
+                telemetry.addData(
                         "Visible AprilTags", visibleTagIds);
 
                 telemetry.addData(
                         "Selected AprilTag", target.id);
 
+                telemetry.addLine("===== CALIBRATION VALUES =====");
+
+                telemetry.addData(
+                        "COPY DISTANCE (p.z)",
+                        "%.2f inches", distance);
+
+                telemetry.addData(
+                        "COPY SIDEWAYS (p.x)",
+                        "%.2f inches", sideways);
+
+                telemetry.addData(
+                        "COPY HEADING (yaw)",
+                        "%.2f degrees", yaw);
+
+                telemetry.addLine("==============================");
+
                 telemetry.addData(
                         "Distance / Target",
-                        "%.1f / %.1f in",
+                        "%.2f / %.2f inches",
                         distance, target.distanceIn);
 
                 telemetry.addData(
                         "Sideways / Target",
-                        "%.1f / %.1f in",
+                        "%.2f / %.2f inches",
                         sideways, target.sidewaysIn);
 
                 telemetry.addData(
                         "Yaw / Target",
-                        "%.1f / %.1f deg",
+                        "%.2f / %.2f degrees",
                         yaw, target.yawDeg);
 
                 telemetry.addData(
                         "Distance Error",
-                        "%.1f", distanceError);
+                        "%.2f", distanceError);
 
                 telemetry.addData(
-                        "Side Error",
-                        "%.1f", sidewaysError);
+                        "Sideways Error",
+                        "%.2f", sidewaysError);
 
                 telemetry.addData(
                         "Yaw Error",
-                        "%.1f", yawError);
+                        "%.2f", yawError);
 
                 telemetry.addData(
                         "At Shooting Spot", atSpot);
@@ -379,43 +384,13 @@ public class TagShot extends BaseAuto {
                         "%.2f", shooterSetting);
 
                 telemetry.addData(
-                        "Flywheel Actual",
-                        "%.0f / %.0f TPS",
-                        flywheel.getVelocity1(),
-                        flywheel.getVelocity2());
-
-                telemetry.addData(
                         "Flywheel Ready",
                         flywheel.isReady());
 
                 telemetry.addData(
                         "Feeding Balls", shoot);
 
-                // =====================================
-                // CALIBRATION DATA
-                // =====================================
-
-                telemetry.addLine("===== COPY TARGET DATA =====");
-
-                telemetry.addData(
-                        "AprilTag ID", target.id);
-
-                telemetry.addData(
-                        "COPY DISTANCE (p.z)",
-                        "%.2f", distance);
-
-                telemetry.addData(
-                        "COPY SIDEWAYS (p.x)",
-                        "%.2f", sideways);
-
-                telemetry.addData(
-                        "COPY HEADING",
-                        "%.2f", yaw);
-
-                telemetry.addLine("============================");
-
                 if (!TARGETS_CALIBRATED) {
-
                     telemetry.addLine(
                             "CALIBRATION REQUIRED - DRIVE DISABLED");
                 }
@@ -443,11 +418,7 @@ public class TagShot extends BaseAuto {
 
         visibleTagIds = "None";
 
-        if (result == null
-                || !result.isValid()
-                || result.getStaleness() > MAX_TAG_STALENESS_MS) {
-
-            visibleTagIds = "No fresh result";
+        if (result == null || !result.isValid()) {
             return null;
         }
 
@@ -460,17 +431,12 @@ public class TagShot extends BaseAuto {
 
             int id = fiducial.getFiducialId();
 
-            // Record every detected BIOBUZZ AprilTag.
-            if (id >= 30 && id <= 45) {
-
-                if (ids.length() > 0) {
-                    ids.append(", ");
-                }
-
-                ids.append(id);
+            if (ids.length() > 0) {
+                ids.append(", ");
             }
 
-            // Only use the four preferred corner tags.
+            ids.append(id);
+
             TagTarget target = targetForId(id);
 
             if (target != null && selectedDetection == null) {
@@ -493,7 +459,7 @@ public class TagShot extends BaseAuto {
     }
 
     // =====================================
-    // SELECT PREFERRED CORNER TAG
+    // SELECT TARGET
     // =====================================
 
     private TagTarget targetForId(int id) {
