@@ -295,18 +295,18 @@ public class DriveMode extends LinearOpMode {
             telemetry.update();
         }
         cornerShot.stop();
-    }
 
-    if (gamepad2.dpad_down) {
-        barServo.setPosition(0.0);
-    }
+        if (gamepad2.dpad_down) {
+            barServo.setPosition(0.0);
+        }
 
-    if (gamepad2.dpad_left) {
-        barServo.setPosition(0.2);
-    }
+        if (gamepad2.dpad_left) {
+            barServo.setPosition(0.2);
+        }
 
-    if (gamepad2.dpad_up) {
-        barServo.setPosition(0.4);
+        if (gamepad2.dpad_up) {
+            barServo.setPosition(0.4);
+        }
     }
 
 }
