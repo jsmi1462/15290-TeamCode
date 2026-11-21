@@ -49,7 +49,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
  *
  * CONTROLS
  *   Driver 1:  left stick = drive and strafe, right stick = turn
- *              left trigger / right trigger = turn the robot to a set angle
  *              Y = shooter faster, X = shooter slower
  *              B = emergency stop for the shooter
  *   Driver 2:  A (hold) = intake, left bumper (hold) = windmill
@@ -171,21 +170,6 @@ public class DriveMode extends LinearOpMode {
             double strafe = gamepad1.left_stick_x;     // sideways
             double turn = -gamepad1.right_stick_x;     // flipped because this robot turns the other way
 
-            // ---------- SNAP TURN: hold a trigger and the robot turns to a set angle ----------
-            boolean snapping = gamepad1.left_trigger > 0.5 || gamepad1.right_trigger > 0.5;
-            double snapAngle = gamepad1.left_trigger > 0.5 ? TuningConfig.snapLeftDeg : TuningConfig.snapRightDeg;
-            if (snapping) {
-                // How far off are we? (angle we want) minus (angle we have), wrapped to -180..180.
-                double angleError = AngleUnit.normalizeDegrees(snapAngle - heading);
-                if (Math.abs(angleError) < TuningConfig.snapDoneDeg) {
-                    turn = 0;   // close enough, stop turning
-                } else {
-                    // Turn faster when far away, slower when close. Never faster than the max.
-                    turn = TuningConfig.snapYawSign * TuningConfig.snapKp * angleError;
-                    turn = Math.max(-TuningConfig.snapMaxPower, Math.min(TuningConfig.snapMaxPower, turn));
-                }
-            }
-
             // Mix the three movements into a power for each wheel.
             double frontLeftPower = forward + strafe + turn;
             double frontRightPower = forward - strafe - turn;
@@ -273,7 +257,6 @@ public class DriveMode extends LinearOpMode {
                     position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH));
             telemetry.addData("Angle (deg)", "%.1f", heading);
             telemetry.addData("Corner reset", inCorner);
-            telemetry.addData("Snap turn", snapping ? "going to " + snapAngle : "off");
             telemetry.addData("Limelight sees target", seesTarget);
             telemetry.addData("Corner", inCorner ? "IN CORNER - press X" : "not in corner");
             cornerShot.addPositionTelemetry();

@@ -62,16 +62,6 @@ public class TuningConfig {
     public static double cornerY = 0;
     public static double cornerHeadingDeg = 0;
 
-    // ---- Snap-to heading (gamepad1 triggers) ----
-    /** Left trigger snaps to this heading, right trigger to the other. Degrees, Pinpoint heading. */
-    public static double snapLeftDeg = 45;
-    public static double snapRightDeg = -45;
-    public static double snapKp = 0.03;      // yaw power per degree of error
-    public static double snapMaxPower = 0.6;
-    public static double snapDoneDeg = 1.5;
-    /** Flip to -1 if the robot turns away from the target instead of toward it. */
-    public static double snapYawSign = 1;
-
     // ---- Shooting tuning (ShooterTuning OpMode only) ----
     /** Tolerance, in ticks per second, for "at speed" on the tuning screen. */
     public static double velocityToleranceTps = 50;

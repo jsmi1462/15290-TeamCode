@@ -50,7 +50,7 @@ public class CornerShot {
     public static double slowPower = 0.3;      // drive power for the last few inches, so we don't overshoot
     public static double slowZoneIn = 6;       // switch to slowPower this many inches before the end
     public static double toleranceIn = 0.5;    // "close enough" for driving
-    public static double headingKp = 0.03;     // turn power per degree of error (same idea as snap turn)
+    public static double headingKp = 0.03;     // turn power per degree of error
     public static double maxTurnPower = 0.5;
     public static double toleranceDeg = 2.0;   // "close enough" for turning
     public static double moveTimeoutS = 5;     // give up on one step if it takes longer than this
@@ -247,7 +247,7 @@ public class CornerShot {
         return sticks > 0.3 || opMode.gamepad1.b;
     }
 
-    /** Turn power that points us at targetDeg. This sign matches DriveMode's snap turn (snapYawSign = 1). */
+    /** Turn power that points us at targetDeg. */
     private double headingCorrection(double targetDeg) {
         double error = AngleUnit.normalizeDegrees(targetDeg - heading());
         double turn = headingKp * error;
@@ -258,7 +258,7 @@ public class CornerShot {
         return pinpoint.getPosition().getHeading(AngleUnit.DEGREES);
     }
 
-    /** forward > 0 = forward, left > 0 = strafe left, turn > 0 = same direction as DriveMode's snap turn. */
+    /** forward > 0 = forward, left > 0 = strafe left. */
     private void setWheels(double forward, double left, double turn) {
         double fl = forward + left + turn;
         double bl = forward - left + turn;
