@@ -74,7 +74,7 @@ public class AutoUp extends BaseAuto {
         intake.setPower(0);
         LeftTurn(50);
         forward(80);
-        strafeLeft(3);
+        strafeLeft(15);
 
         endAuto();
     }
