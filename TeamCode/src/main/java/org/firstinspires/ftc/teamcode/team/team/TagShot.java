@@ -51,7 +51,7 @@ public class TagShot extends BaseAuto {
     // Keep false until all four target points
     // have been measured and entered.
 
-    private static final boolean TARGETS_CALIBRATED = true;
+    private static final boolean TARGETS_CALIBRATED = false;
 
     private static final TagTarget TARGET_30 =
             new TagTarget(30, 0, 0, 0, 0);
