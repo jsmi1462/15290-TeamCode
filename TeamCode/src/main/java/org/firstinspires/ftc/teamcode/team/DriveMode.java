@@ -245,18 +245,12 @@ public class DriveMode extends LinearOpMode {
                 // ---------- BAR SERVO ----------
                 if (gamepad2.dpad_right) {
                     barServo.setPosition(0.0);
-                    telemetry.addData("Bar Servo", "RIGHT - Position 0.0");
                 }
                 else if (gamepad2.dpad_left) {
                     barServo.setPosition(0.2);
-                    telemetry.addData("Bar Servo", "LEFT - Position 0.2");
                 }
                 else if (gamepad2.dpad_up) {
                     barServo.setPosition(0.4);
-                    telemetry.addData("Bar Servo", "UP - Position 0.4");
-                }
-                else {
-                    telemetry.addData("Bar Servo", "No button pressed");
                 }
             // ---------- LIMELIGHT (settings come from TuningConfig) ----------
             if (TuningConfig.limelightPipeline != pipelineInUse) {
