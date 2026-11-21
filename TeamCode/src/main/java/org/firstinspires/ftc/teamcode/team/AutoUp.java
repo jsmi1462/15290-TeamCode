@@ -1,12 +1,10 @@
 package org.firstinspires.ftc.teamcode.team;
 
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -15,16 +13,12 @@ import java.util.concurrent.TimeUnit;
  */
 @Autonomous(name = "Autonomous Up", group = "Sensor")
 public class AutoUp extends BaseAuto {
-    private GoBildaPinpointDriver pinpoint;
-    Timer timer = new Timer();
-    int num = 3000;
-    long longNum = num;
 
-    protected void LeftTurn45() {
-        // Target: Turn left 45 degrees from current heading
+    protected void LeftTurn(double turnValue) {
+        // Target: Turn left `turnValue` degrees from current heading
         pinpoint.update();
         double startHeading = pinpoint.getHeading(AngleUnit.DEGREES);
-        double targetHeading = startHeading + 45.0;
+        double targetHeading = startHeading + turnValue;
 
         // Simple proportional gain (tune kP to prevent overshooting)
         double kP = 0.025;
@@ -46,7 +40,7 @@ public class AutoUp extends BaseAuto {
 
             // Minimum power floor to overcome static friction near the target
             if (Math.abs(turnPower) < 0.12) {
-                turnPower = Math.signum(error * .12);
+                turnPower = Math.signum(error) * 0.12;
             }
 
             // Standard Mecanum / Tank counterclockwise turn
@@ -55,41 +49,32 @@ public class AutoUp extends BaseAuto {
             frontRightDrive.setPower(-turnPower);
             backRightDrive.setPower(-turnPower);
         }
-        frontLeftDrive.setPower(0);
-        backLeftDrive.setPower(0);
-        frontRightDrive.setPower(0);
-        backRightDrive.setPower(0);
+        stopDrive();
 
+        // Save the new heading so driveInches maintains this new direction
+        updateStartHeading();
     }
-
 
     @Override
     public void runOpMode() throws InterruptedException {
         initRobot();
         waitForStart();
-        pinpoint = hardwareMap.get(GoBildaPinpointDriver .class, "pinpoint");
-        flywheel.spinTo(0.3 * TuningConfig.shooterMaxTps);
-        TimeUnit.SECONDS.sleep(3);
         startAuto();   // remember the heading right before we start driving
 
-        forward(2);
-        strafeLeft(2);
-        LeftTurn45();
+        flywheel.spinTo(0.31 * TuningConfig.shooterMaxTps);
+        TimeUnit.SECONDS.sleep(3);
+
+        forward(3);
+        strafeLeft(3);
+        LeftTurn(33);
         windmill.setPower(1);
         intake.setPower(1);
         TimeUnit.SECONDS.sleep(3);
         windmill.setPower(0);
         intake.setPower(0);
-        LeftTurn45();
-        forward(86);
+        LeftTurn(50);
+        forward(80);
         strafeLeft(3);
-
-        //I think i just plan to move by distance and change those values, it makes more sence to me to just use distance
-        //forward is forward(number of inches);
-        //back is back(number of inches);
-        //strafeLeft is strafeLeft(number of inches);
-        //strafeRight is strafeRight(number of inches);
-        //windmill is windmill.setPower(0);
 
         endAuto();
     }
